@@ -162,9 +162,9 @@ export default function FreeFirePage() {
             <div className="relative">
               <div className="aspect-square bg-[#111] border border-[#1A1A1A] flex items-center justify-center overflow-hidden relative">
                 <img
-                  src="https://www.vamos.com.my/cdn/shop/files/freefire.png?v=1760690109&width=400"
+                  src="/storage/freefire/free-fire.webp"
                   alt="Free Fire"
-                  className="w-48 h-48 object-contain opacity-20"
+                  className="w-full h-full object-cover"
                 />
                 <div className="absolute top-0 left-0 w-10 h-1 bg-[#42deef]" />
                 <div className="absolute top-0 left-0 w-1 h-10 bg-[#42deef]" />

@@ -174,38 +174,55 @@ export default function GameStorePage() {
                   {game.currency} · {(game.game_packages ?? []).length} options
                 </p>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {(game.game_packages ?? []).map((pkg) => (
-                    <button
-                      key={pkg.id}
-                      onClick={() => setSelectedPackage(pkg)}
-                      className={`relative text-left p-4 border transition-all duration-200 ${
-                        selectedPackage?.id === pkg.id
-                          ? 'bg-[#060d14]'
-                          : 'border-[#1A1A1A] bg-[#060d14] hover:border-[#333]'
-                      }`}
-                      style={selectedPackage?.id === pkg.id ? {
-                        borderColor: game.color,
-                        boxShadow: `0 0 20px ${game.color}25`,
-                      } : undefined}
-                    >
-                      {pkg.popular && (
-                        <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: game.color }} />
-                      )}
-                      {pkg.popular && (
-                        <div className="absolute top-2 right-2 text-[#0A0A0A] text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5"
-                          style={{ background: game.color }}>
-                          Popular
-                        </div>
-                      )}
-                      <div className="text-white font-black text-sm mb-1 pr-8 leading-tight">{pkg.amount}</div>
-                      {pkg.bonus && (
-                        <div className="text-xs font-black mb-1" style={{ color: game.color }}>Bonus {pkg.bonus}</div>
-                      )}
-                      <div className="font-black text-lg" style={{ color: game.color }}>RM {pkg.price.toFixed(2)}</div>
-                    </button>
-                  ))}
-                </div>
+                {(['currency', 'subscription', 'bundle'] as const).map((type) => {
+                  const pkgs = (game.game_packages ?? []).filter(p => (p.package_type ?? 'currency') === type);
+                  if (!pkgs.length) return null;
+                  const labels: Record<string, string> = {
+                    currency: game.currency,
+                    subscription: 'Subscriptions & Passes',
+                    bundle: 'Bundles',
+                  };
+                  return (
+                    <div key={type} className="mb-8">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{labels[type]}</span>
+                        <div className="flex-1 h-px bg-[#1A1A1A]" />
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {pkgs.map((pkg) => (
+                          <button
+                            key={pkg.id}
+                            onClick={() => setSelectedPackage(pkg)}
+                            className={`relative text-left p-4 border transition-all duration-200 ${
+                              selectedPackage?.id === pkg.id
+                                ? 'bg-[#060d14]'
+                                : 'border-[#1A1A1A] bg-[#060d14] hover:border-[#333]'
+                            }`}
+                            style={selectedPackage?.id === pkg.id ? {
+                              borderColor: game.color,
+                              boxShadow: `0 0 20px ${game.color}25`,
+                            } : undefined}
+                          >
+                            {pkg.popular && (
+                              <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: game.color }} />
+                            )}
+                            {pkg.popular && (
+                              <div className="absolute top-2 right-2 text-[#0A0A0A] text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5"
+                                style={{ background: game.color }}>
+                                Popular
+                              </div>
+                            )}
+                            <div className="text-white font-black text-sm mb-1 pr-8 leading-tight">{pkg.amount}</div>
+                            {pkg.bonus && (
+                              <div className="text-xs font-black mb-1" style={{ color: game.color }}>Bonus {pkg.bonus}</div>
+                            )}
+                            <div className="font-black text-lg" style={{ color: game.color }}>RM {pkg.price.toFixed(2)}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Order form */}

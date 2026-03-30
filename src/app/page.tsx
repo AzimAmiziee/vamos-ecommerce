@@ -69,7 +69,7 @@ export default function Home() {
       <section className="relative overflow-hidden min-h-screen flex flex-col justify-center">
         {/* Background image */}
         <div className="absolute inset-0">
-          <img src="/background.jpg" alt="" className="w-full h-full object-cover object-center" />
+          <img src="/background.webp" alt="" className="w-full h-full object-cover object-center" />
           {/* Dark overlays for premium depth */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#040d14]/85 via-[#040d14]/70 to-[#040d14]/95" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#040d14]/60 via-transparent to-[#040d14]/40" />
@@ -122,7 +122,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-[#42deef] opacity-[0.20] blur-[80px] scale-150 rounded-full anim-glow-pulse" />
               <div className="anim-float">
                 <Image
-                  src="/team-vamos-logo.png"
+                  src="/team-vamos-logo.webp"
                   alt="Team Vamos"
                   width={600}
                   height={157}
@@ -277,7 +277,7 @@ export default function Home() {
                 <div className="absolute w-[90%] h-[90%] ring-deco anim-spin-slow opacity-20"
                   style={{ borderColor: 'rgba(66,222,239,0.10)' }} />
                 <Image
-                  src="/team-vamos-logo.png"
+                  src="/team-vamos-logo.webp"
                   alt="Team Vamos"
                   width={400}
                   height={104}
@@ -303,7 +303,7 @@ export default function Home() {
         {/* Background image */}
         <div className="absolute inset-0">
           <img
-            src="/forza-vamos.jpg"
+            src="/forza-vamos.webp"
             alt="Forza Vamos community"
             className="w-full h-full object-cover object-center"
           />
@@ -391,13 +391,13 @@ export default function Home() {
               {[...Array(2)].map((_, setIdx) => (
                 <div key={setIdx} className="flex items-center">
                   {[
-                    '/Sponsor-01.png',
-                    '/Sponsor-02.png',
-                    '/Sponsor-03.png',
-                    '/Sponsor-04.png',
-                    '/Sponsor-05.png',
-                    '/Sponsor-06.png',
-                    '/Sponsor-07.png',
+                    '/Sponsor-01.webp',
+                    '/Sponsor-02.webp',
+                    '/Sponsor-03.webp',
+                    '/Sponsor-04.webp',
+                    '/Sponsor-05.webp',
+                    '/Sponsor-06.webp',
+                    '/Sponsor-07.webp',
                   ].map((src, i) => (
                     <div key={i} className="flex items-center justify-center w-96 h-48 mx-10 group shrink-0">
                       <img
@@ -662,7 +662,7 @@ export default function Home() {
           <div className="grid md:grid-cols-5 gap-12 mb-12">
             <div className="md:col-span-2">
               <Image
-                src="/vamos-logo.png"
+                src="/vamos-logo.webp"
                 alt="Vamos"
                 width={120}
                 height={48}

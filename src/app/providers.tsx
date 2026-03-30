@@ -4,6 +4,10 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
+// Set this flag before calling signUp() to prevent auto-login
+let _suppressNextSignIn = false;
+export function suppressNextSignIn() { _suppressNextSignIn = true; }
+
 interface Profile {
   id: string;
   full_name: string | null;
@@ -57,7 +61,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && _suppressNextSignIn) {
+        _suppressNextSignIn = false;
+        supabase.auth.signOut();
+        return; // never set state — no flash
+      }
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {

@@ -55,11 +55,17 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
   useEffect(() => {
+    let ticking = false;
     const onScroll = () => {
-      const scrollY = window.scrollY;
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      setScrolled(scrollY > 40);
-      setProgress(maxScroll > 0 ? (scrollY / maxScroll) * 100 : 0);
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        setScrolled(scrollY > 40);
+        setProgress(maxScroll > 0 ? (scrollY / maxScroll) * 100 : 0);
+        ticking = false;
+      });
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -87,7 +93,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center group flex-shrink-0">
             <Image
-              src="/vamos-logo.png"
+              src="/vamos-logo.webp"
               alt="Vamos"
               width={90}
               height={32}
@@ -222,6 +228,12 @@ export default function Header() {
                   <span>{(profile?.points ?? 0).toLocaleString()} pts</span>
                 </Link>
                 <div className="w-px h-4 bg-[#42deef]/20" />
+                <Link
+                  href="/profile"
+                  className="bg-[#42deef]/10 border border-[#42deef]/30 text-[#42deef] text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-lg hover:bg-[#42deef] hover:text-[#0A0A0A] transition-all duration-300"
+                >
+                  Profile
+                </Link>
                 <button
                   onClick={signOut}
                   className="bg-[#42deef]/10 border border-[#42deef]/30 text-[#42deef] text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-lg hover:bg-red-500/20 hover:border-red-500/40 hover:text-red-400 transition-all duration-300"
@@ -338,6 +350,13 @@ export default function Header() {
                     <span>⭐</span>
                     <span>{(profile?.points ?? 0).toLocaleString()} pts</span>
                   </div>
+                  <Link
+                    href="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="block text-[11px] font-bold uppercase tracking-widest py-2.5 px-2 transition-colors border-l-2 border-transparent hover:border-[#42deef] hover:pl-4 text-gray-400 hover:text-white"
+                  >
+                    Profile
+                  </Link>
                   <button
                     onClick={() => { setMenuOpen(false); signOut(); }}
                     className="text-[11px] font-bold uppercase tracking-widest py-2.5 px-2 transition-colors border-l-2 border-transparent hover:border-red-500 hover:pl-4 text-gray-400 hover:text-red-400 text-left w-full"

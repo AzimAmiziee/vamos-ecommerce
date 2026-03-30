@@ -44,7 +44,7 @@ const PROGRAMS = [
     description: 'Perfect for beginners looking to master the fundamentals of competitive Mobile Legends.',
     price: 70,
     originalPrice: 89,
-    image: '/storage/academy/program-beginner.png',
+    image: '/storage/academy/program-beginner.webp',
     tag: 'Early Bird',
     available: true,
     features: [
@@ -61,7 +61,7 @@ const PROGRAMS = [
     description: 'Master the fundamentals and build real synergy with your squad under pro-level coaching.',
     price: 300,
     originalPrice: 395,
-    image: '/storage/academy/program-beginner.png',
+    image: '/storage/academy/program-beginner.webp',
     tag: 'Best Value',
     available: true,
     features: [
@@ -78,7 +78,7 @@ const PROGRAMS = [
     description: 'Learn advanced techniques and competitive strategies used by MPL professionals.',
     price: null,
     originalPrice: null,
-    image: '/storage/academy/program-intermediate.png',
+    image: '/storage/academy/program-intermediate.webp',
     tag: 'Coming Soon',
     available: false,
     features: [
@@ -95,7 +95,7 @@ const PROGRAMS = [
     description: 'Compete at the highest level with structured squad training from MPL champions.',
     price: null,
     originalPrice: null,
-    image: '/storage/academy/program-intermediate.png',
+    image: '/storage/academy/program-intermediate.webp',
     tag: 'Coming Soon',
     available: false,
     features: [
@@ -145,7 +145,7 @@ export default function AcademyPage() {
           {/* Right — crest image, fully visible */}
           <div className="order-1 md:order-2 flex justify-center">
             <Image
-              src="/storage/academy/hero.png"
+              src="/storage/academy/hero.webp"
               alt="Vamos Academy Crest"
               width={1117}
               height={997}
@@ -216,9 +216,19 @@ export default function AcademyPage() {
                 </svg>
               </div>
               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#a78bfa] mb-3">Our Vision</p>
-              <p className="text-gray-300 text-lg leading-relaxed font-medium">
-                To become the leading esports development academy in Malaysia, dedicated to discovering, guiding, and producing professional players who are ethical and competitive at the international level.
-              </p>
+              <ul className="space-y-3">
+                {[
+                  'Become the leading esports development academy in Malaysia.',
+                  'Discover, guide, and produce professional players who are ethical and competitive.',
+                  'Represent Malaysia at the international level with integrity and excellence.',
+                  'Build a sustainable pipeline from grassroots to professional esports.',
+                ].map((item, i) => (
+                  <li key={i} className="flex gap-3 text-gray-400 text-sm leading-relaxed">
+                    <span className="text-[#a78bfa] font-black shrink-0 mt-0.5">→</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
@@ -243,7 +253,7 @@ export default function AcademyPage() {
                 style={{ boxShadow: '0 0 60px rgba(66,222,239,0.08)' }}>
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#42deef] to-transparent z-10" />
                 <Image
-                  src="/storage/academy/coach-pabz.png"
+                  src="/storage/academy/coach-pabz.webp"
                   alt="Coach Pabz"
                   width={500}
                   height={600}

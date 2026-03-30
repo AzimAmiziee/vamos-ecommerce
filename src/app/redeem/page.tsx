@@ -181,7 +181,7 @@ export default function RedeemPage() {
       <Header />
 
       {/* ── HERO ──────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden min-h-[88vh] flex items-center px-4 py-12">
+      <section className="relative overflow-hidden min-h-[60vh] flex items-center px-4 py-12">
         {/* Background layers */}
         <div className="absolute inset-0 bg-grid-lines opacity-20 pointer-events-none" />
         <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[900px] h-[600px] rounded-full pointer-events-none"
@@ -209,16 +209,27 @@ export default function RedeemPage() {
               {/* Earn rates */}
               <div className="flex flex-wrap gap-3 mb-8">
                 {[
-                  { label: 'Merchandise', rate: '2 pts / RM1', color: '#42deef' },
-                  { label: 'Diamond Top-Up', rate: '1 pt / RM1', color: '#a78bfa' },
-                  { label: 'Bonus Events', rate: '2× pts', color: '#f59e0b' },
-                ].map((r) => (
-                  <div key={r.label} className="flex items-center gap-2 bg-[#060d14] border border-[#1A1A1A] px-4 py-2.5">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: r.color }} />
-                    <span className="text-gray-500 text-[10px] uppercase tracking-widest font-black">{r.label}</span>
-                    <span className="font-black text-[11px]" style={{ color: r.color }}>{r.rate}</span>
-                  </div>
-                ))}
+                  { label: 'Merchandise', rate: '2 pts / RM1', color: '#42deef', href: '/products' },
+                  { label: 'Diamond Top-Up', rate: '1 pt / RM1', color: '#a78bfa', href: '/store' },
+                  { label: 'Bonus Events', rate: '2× pts', color: '#f59e0b', href: null },
+                ].map((r) => {
+                  const inner = (
+                    <>
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: r.color }} />
+                      <span className="text-gray-500 text-[10px] uppercase tracking-widest font-black">{r.label}</span>
+                      <span className="font-black text-[11px]" style={{ color: r.color }}>{r.rate}</span>
+                    </>
+                  );
+                  return r.href ? (
+                    <Link key={r.label} href={r.href} className="flex items-center gap-2 bg-[#060d14] border border-[#1A1A1A] px-4 py-2.5 hover:border-[#333] transition-colors">
+                      {inner}
+                    </Link>
+                  ) : (
+                    <div key={r.label} className="flex items-center gap-2 bg-[#060d14] border border-[#1A1A1A] px-4 py-2.5">
+                      {inner}
+                    </div>
+                  );
+                })}
               </div>
 
               {!user && (
@@ -316,6 +327,45 @@ export default function RedeemPage() {
         </div>
       </section>
 
+      {/* ── TIERS ─────────────────────────────────────────────────── */}
+      <section className="py-10 px-4 border-t border-[#0f1923]">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-px w-8 bg-[#42deef]/40" />
+            <span className="text-[#42deef] text-[10px] font-black tracking-[0.4em] uppercase">Membership Tiers</span>
+            <div className="flex-1 h-px bg-[#0f1923]" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: 'BRONZE', min: 0,    max: 499,  color: '#cd7c3a', icon: '🥉' },
+              { label: 'SILVER', min: 500,  max: 1999, color: '#94a3b8', icon: '🥈' },
+              { label: 'GOLD',   min: 2000, max: 4999, color: '#f59e0b', icon: '🥇' },
+              { label: 'DIAMOND',min: 5000, max: null, color: '#a78bfa', icon: '💎' },
+            ].map((t) => {
+              const active = tier.label === t.label;
+              return (
+                <div key={t.label}
+                  className="relative overflow-hidden border p-5 text-center transition-all"
+                  style={{
+                    borderColor: active ? `${t.color}60` : '#1A1A1A',
+                    background: active ? `${t.color}08` : '#060d14',
+                    boxShadow: active ? `0 0 30px ${t.color}10` : 'none',
+                  }}>
+                  {active && <div className="absolute top-0 left-0 right-0 h-[2px]"
+                    style={{ background: `linear-gradient(to right, transparent, ${t.color}, transparent)` }} />}
+                  <div className="text-2xl mb-2">{t.icon}</div>
+                  <p className="font-black text-xs uppercase tracking-widest mb-1" style={{ color: t.color }}>{t.label}</p>
+                  <p className="text-gray-600 text-[10px]">
+                    {t.max ? `${t.min.toLocaleString()}–${t.max.toLocaleString()} pts` : `${t.min.toLocaleString()}+ pts`}
+                  </p>
+                  {active && <div className="mt-2 text-[9px] font-black uppercase tracking-widest" style={{ color: t.color }}>← Your Tier</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* ── LEADERBOARD ───────────────────────────────────────────── */}
       <section className="relative py-20 px-4 overflow-hidden border-t border-[#0f1923]">
         <div className="absolute inset-0 pointer-events-none"
@@ -333,13 +383,30 @@ export default function RedeemPage() {
             <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight">
               Top <span style={{ color: '#f59e0b' }}>Spenders</span>
             </h2>
-            {activeSeason && (
-              <p className="text-gray-500 text-sm mt-2">
-                Season: <span className="text-white font-black">{activeSeason.name}</span>
-                <span className="text-gray-700 mx-2">·</span>
-                <span className="text-gray-600 text-xs">{activeSeason.start_date} → {activeSeason.end_date}</span>
-              </p>
-            )}
+            {activeSeason && (() => {
+              const daysLeft = Math.max(0, Math.ceil(
+                (new Date(activeSeason.end_date).getTime() - Date.now()) / 86400000
+              ));
+              return (
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+                  <span className="text-gray-500 text-xs">Season:</span>
+                  <span className="text-white font-black text-sm">{activeSeason.name}</span>
+                  <span className="text-gray-700">·</span>
+                  <span className="bg-[#1a1a1a] border border-[#333] text-gray-400 text-[10px] font-black px-2.5 py-1 uppercase tracking-widest">
+                    {activeSeason.start_date} → {activeSeason.end_date}
+                  </span>
+                  <span className={`text-[10px] font-black px-2.5 py-1 uppercase tracking-widest border ${
+                    daysLeft <= 14
+                      ? 'bg-red-500/10 border-red-500/40 text-red-400'
+                      : daysLeft <= 30
+                        ? 'bg-[#f59e0b]/10 border-[#f59e0b]/40 text-[#f59e0b]'
+                        : 'bg-[#42deef]/8 border-[#42deef]/25 text-[#42deef]'
+                  }`}>
+                    {daysLeft === 0 ? 'Last day!' : `${daysLeft}d left`}
+                  </span>
+                </div>
+              );
+            })()}
             <p className="text-gray-600 text-xs mt-1 max-w-md mx-auto">Resets every season. Only orders made during the active season count.</p>
           </div>
 
@@ -383,7 +450,7 @@ export default function RedeemPage() {
                       { icon: '✈️', label: 'Flights', sub: 'Fully covered' },
                       { icon: '🏨', label: 'Hotel', sub: 'Fully covered' },
                       { icon: '🎮', label: 'Activities', sub: 'With the squad' },
-                      { icon: '🎽', label: 'Signed Jersey', sub: 'Full S17 squad' },
+                      { icon: '🎽', label: 'Jersey w/ IGN', sub: 'Your in-game name' },
                     ].map((perk) => (
                       <div key={perk.label} className="border border-[#f59e0b]/15 p-3"
                         style={{ background: 'rgba(245,158,11,0.04)' }}>
@@ -486,27 +553,29 @@ export default function RedeemPage() {
                 )}
               </div>
 
-              {/* Ranks 4–5 */}
-              {others.length > 0 && (
-                <div className="space-y-2 mt-4">
-                  {others.map((s) => {
-                    const isMe = user?.id === s.user_id;
-                    return (
-                      <div key={s.user_id}
-                        className={`flex items-center gap-4 px-5 py-3.5 border transition-all ${
-                          isMe ? 'border-[#42deef]/30 bg-[#42deef]/5' : 'border-[#1A1A1A] bg-[#060d14]'
-                        }`}>
-                        <span className="w-8 text-center text-gray-600 text-xs font-black shrink-0">#{s.rank}</span>
-                        <span className={`flex-1 font-black text-sm truncate ${isMe ? 'text-[#42deef]' : 'text-white'}`}>{s.display_name}</span>
-                        {isMe && <span className="bg-[#42deef] text-[#040810] text-[8px] font-black px-1.5 py-0.5 uppercase tracking-widest shrink-0">You</span>}
-                        <span className="text-gray-500 text-xs shrink-0 hidden sm:block">{s.order_count} orders</span>
-                        <span className="text-white font-black text-sm shrink-0">RM {Number(s.total_spent).toFixed(0)}</span>
-                        <span className="text-[#42deef] text-xs font-black shrink-0">{s.total_points.toLocaleString()} pts</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              {/* Current user rank (if outside top 3) */}
+              {(() => {
+                if (!user) return null;
+                const myEntry = others.find((s) => s.user_id === user.id);
+                if (!myEntry) return null;
+                return (
+                  <div className="mt-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="flex-1 h-px bg-[#1A1A1A]" />
+                      <span className="text-gray-700 text-[9px] font-black uppercase tracking-widest">Your Rank</span>
+                      <div className="flex-1 h-px bg-[#1A1A1A]" />
+                    </div>
+                    <div className="flex items-center gap-4 px-5 py-3.5 border border-[#42deef]/30 bg-[#42deef]/5">
+                      <span className="w-8 text-center text-[#42deef] text-xs font-black shrink-0">#{myEntry.rank}</span>
+                      <span className="flex-1 font-black text-sm truncate text-[#42deef]">{myEntry.display_name}</span>
+                      <span className="bg-[#42deef] text-[#040810] text-[8px] font-black px-1.5 py-0.5 uppercase tracking-widest shrink-0">You</span>
+                      <span className="text-gray-500 text-xs shrink-0 hidden sm:block">{myEntry.order_count} orders</span>
+                      <span className="text-white font-black text-sm shrink-0">RM {Number(myEntry.total_spent).toFixed(0)}</span>
+                      <span className="text-[#42deef] text-xs font-black shrink-0">{myEntry.total_points.toLocaleString()} pts</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </>
           )}
           <p className="text-gray-700 text-[10px] text-center mt-6">
@@ -733,48 +802,6 @@ export default function RedeemPage() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TIERS ─────────────────────────────────────────────────── */}
-      <section className="py-20 px-4 border-t border-[#0f1923]">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-3 mb-4">
-              <div className="h-px w-12 bg-[#42deef]/40" />
-              <span className="text-[#42deef] text-[10px] font-black tracking-[0.4em] uppercase">Membership Tiers</span>
-              <div className="h-px w-12 bg-[#42deef]/40" />
-            </div>
-            <h2 className="text-4xl font-black text-white uppercase">Your <span className="text-shimmer">Tier</span></h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: 'BRONZE', min: 0,    max: 499,  color: '#cd7c3a', icon: '🥉' },
-              { label: 'SILVER', min: 500,  max: 1999, color: '#94a3b8', icon: '🥈' },
-              { label: 'GOLD',   min: 2000, max: 4999, color: '#f59e0b', icon: '🥇' },
-              { label: 'DIAMOND',min: 5000, max: null, color: '#a78bfa', icon: '💎' },
-            ].map((t) => {
-              const active = tier.label === t.label;
-              return (
-                <div key={t.label}
-                  className="relative overflow-hidden border p-5 text-center transition-all"
-                  style={{
-                    borderColor: active ? `${t.color}60` : '#1A1A1A',
-                    background: active ? `${t.color}08` : '#060d14',
-                    boxShadow: active ? `0 0 30px ${t.color}10` : 'none',
-                  }}>
-                  {active && <div className="absolute top-0 left-0 right-0 h-[2px]"
-                    style={{ background: `linear-gradient(to right, transparent, ${t.color}, transparent)` }} />}
-                  <div className="text-2xl mb-2">{t.icon}</div>
-                  <p className="font-black text-xs uppercase tracking-widest mb-1" style={{ color: t.color }}>{t.label}</p>
-                  <p className="text-gray-600 text-[10px]">
-                    {t.max ? `${t.min.toLocaleString()}–${t.max.toLocaleString()} pts` : `${t.min.toLocaleString()}+ pts`}
-                  </p>
-                  {active && <div className="mt-2 text-[9px] font-black uppercase tracking-widest" style={{ color: t.color }}>← Your Tier</div>}
-                </div>
-              );
-            })}
           </div>
         </div>
       </section>

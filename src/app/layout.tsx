@@ -7,19 +7,23 @@ import { CartProvider } from "@/lib/cart";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
   title: "Team Vamos — Official Merchandise",
   description: "Official Team Vamos merchandise store. MPL MY esports. Represent the grind.",
   icons: {
-    icon: "/vamos-logo.png",
-    apple: "/vamos-logo.png",
+    icon: "/vamos-logo.webp",
+    apple: "/vamos-logo.webp",
   },
 };
 

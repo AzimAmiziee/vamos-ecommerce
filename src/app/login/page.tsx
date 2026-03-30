@@ -46,7 +46,7 @@ function LoginForm() {
           {/* Logo */}
           <div className="text-center mb-10">
             <Image
-              src="/team-vamos-logo.png"
+              src="/team-vamos-logo.webp"
               alt="Team Vamos"
               width={300}
               height={78}

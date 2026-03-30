@@ -4,13 +4,13 @@ import Header from '@/app/components/Header';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { suppressNextSignIn } from '@/app/providers';
 
 export default function SignupPage() {
-  const router = useRouter();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
@@ -32,10 +32,13 @@ export default function SignupPage() {
 
     setLoading(true);
 
+    // Prevent auto-login before signUp fires the SIGNED_IN event
+    suppressNextSignIn();
+
     const { error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: { data: { full_name: fullName, phone } },
     });
 
     if (authError) {
@@ -84,7 +87,7 @@ export default function SignupPage() {
 
           <div className="text-center mb-10">
             <Image
-              src="/team-vamos-logo.png"
+              src="/team-vamos-logo.webp"
               alt="Team Vamos"
               width={300}
               height={78}
@@ -123,6 +126,18 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#333] text-white text-sm focus:outline-none focus:border-[#42deef] transition-colors placeholder-gray-700"
                 placeholder="you@example.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Phone Number</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#333] text-white text-sm focus:outline-none focus:border-[#42deef] transition-colors placeholder-gray-700"
+                placeholder="+60 12-345 6789"
                 required
               />
             </div>

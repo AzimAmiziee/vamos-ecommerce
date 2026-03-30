@@ -2,15 +2,15 @@ import { createServerSupabase } from '@/lib/supabase';
 
 // team logo map — local storage paths
 const TEAM_LOGOS: Record<string, string> = {
-  'Team Vamos':      '/storage/teams/vamos.png',
-  'SRG Esports':     '/storage/teams/srg.png',
-  'RRQ Tora':        '/storage/teams/rrq.png',
-  'Invictus Gaming': '/storage/teams/invictus.png',
-  'Bigetron MY':     '/storage/teams/bigetron.png',
-  'AC Esports':      '/storage/teams/acesports.png',
-  'Team Flash':      '/storage/teams/teamflash.png',
-  'Team Rey':        '/storage/teams/teamrey.png',
-  'Todak':           '/storage/teams/todak.png',
+  'Team Vamos':      '/storage/teams/vamos.webp',
+  'SRG Esports':     '/storage/teams/srg.webp',
+  'RRQ Tora':        '/storage/teams/rrq.webp',
+  'Invictus Gaming': '/storage/teams/invictus.webp',
+  'Bigetron MY':     '/storage/teams/bigetron.webp',
+  'AC Esports':      '/storage/teams/acesports.webp',
+  'Team Flash':      '/storage/teams/teamflash.webp',
+  'Team Rey':        '/storage/teams/teamrey.webp',
+  'Todak':           '/storage/teams/todak.webp',
 };
 
 export interface DBStanding {

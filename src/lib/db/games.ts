@@ -9,6 +9,7 @@ export interface DBGamePackage {
   bonus: string | null;
   popular: boolean;
   sort_order: number;
+  package_type: 'currency' | 'subscription' | 'bundle';
 }
 
 export interface DBGame {
