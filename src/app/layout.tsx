@@ -17,6 +17,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Team Vamos — Official Merchandise",
   description: "Official Team Vamos merchandise store. MPL MY esports. Represent the grind.",
+  icons: {
+    icon: "/vamos-logo.png",
+    apple: "/vamos-logo.png",
+  },
 };
 
 export default function RootLayout({
