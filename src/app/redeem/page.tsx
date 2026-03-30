@@ -402,7 +402,7 @@ export default function RedeemPage() {
                         ? 'bg-[#f59e0b]/10 border-[#f59e0b]/40 text-[#f59e0b]'
                         : 'bg-[#42deef]/8 border-[#42deef]/25 text-[#42deef]'
                   }`}>
-                    {daysLeft === 0 ? 'Last day!' : `${daysLeft}d left`}
+                    {daysLeft === 0 ? 'Last Day!' : `${daysLeft} Days Left`}
                   </span>
                 </div>
               );

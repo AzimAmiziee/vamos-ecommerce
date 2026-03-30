@@ -230,9 +230,10 @@ export default function Header() {
                 <div className="w-px h-4 bg-[#42deef]/20" />
                 <Link
                   href="/profile"
-                  className="bg-[#42deef]/10 border border-[#42deef]/30 text-[#42deef] text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-lg hover:bg-[#42deef] hover:text-[#0A0A0A] transition-all duration-300"
+                  className="bg-[#42deef]/10 border border-[#42deef]/30 text-[11px] px-3 py-1.5 rounded-lg hover:bg-[#42deef]/20 transition-all duration-300 flex items-center justify-center leading-none"
+                  title="Profile"
                 >
-                  Profile
+                  <span className="text-base leading-none">{(profile as { avatar_url?: string })?.avatar_url ?? '🦊'}</span>
                 </Link>
                 <button
                   onClick={signOut}
@@ -353,8 +354,9 @@ export default function Header() {
                   <Link
                     href="/profile"
                     onClick={() => setMenuOpen(false)}
-                    className="block text-[11px] font-bold uppercase tracking-widest py-2.5 px-2 transition-colors border-l-2 border-transparent hover:border-[#42deef] hover:pl-4 text-gray-400 hover:text-white"
+                    className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest py-2.5 px-2 transition-colors border-l-2 border-transparent hover:border-[#42deef] hover:pl-4 text-gray-400 hover:text-white"
                   >
+                    <span className="text-base leading-none">{(profile as { avatar_url?: string })?.avatar_url ?? '🦊'}</span>
                     Profile
                   </Link>
                   <button
