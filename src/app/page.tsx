@@ -269,31 +269,37 @@ export default function Home() {
 
             {/* Brand visual */}
             <div className="relative reveal-right" data-reveal>
-              <div className="aspect-square bg-[#060d14] border border-[#1A1A1A] hover:border-[#42deef]/50 transition-colors duration-500 flex items-center justify-center overflow-hidden relative group"
-                style={{ boxShadow: '0 0 60px rgba(66,222,239,0.05)' }}>
-                {/* Rotating ring inside box */}
-                <div className="absolute w-[130%] h-[130%] ring-deco anim-spin-slow-rev opacity-30"
-                  style={{ borderColor: 'rgba(66,222,239,0.15)' }} />
-                <div className="absolute w-[90%] h-[90%] ring-deco anim-spin-slow opacity-20"
-                  style={{ borderColor: 'rgba(66,222,239,0.10)' }} />
-                <Image
-                  src="/team-vamos-logo.webp"
-                  alt="Team Vamos"
-                  width={400}
-                  height={104}
-                  className="w-48 h-auto object-contain opacity-25 group-hover:opacity-40 group-hover:drop-shadow-[0_0_30px_rgba(66,222,239,0.5)] transition-all duration-700 relative z-10"
-                />
-                {/* Corner accents */}
-                <div className="absolute top-0 left-0 w-10 h-[2px] bg-[#42deef]" />
-                <div className="absolute top-0 left-0 w-[2px] h-10 bg-[#42deef]" />
-                <div className="absolute bottom-0 right-0 w-10 h-[2px] bg-[#42deef]" />
-                <div className="absolute bottom-0 right-0 w-[2px] h-10 bg-[#42deef]" />
-                <div className="absolute top-0 right-0 w-6 h-[1px] bg-[#42deef]/40" />
-                <div className="absolute bottom-0 left-0 w-6 h-[1px] bg-[#42deef]/40" />
-                {/* Center glow */}
-                <div className="absolute inset-0 bg-[#42deef] opacity-0 group-hover:opacity-[0.04] transition-opacity duration-500 rounded-full scale-50 blur-3xl" />
-              </div>
+            <div
+              className="aspect-square bg-[#060d14] border border-[#1A1A1A] hover:border-[#42deef]/50 transition-colors duration-500 overflow-hidden relative group"
+              style={{ boxShadow: '0 0 60px rgba(66,222,239,0.05)' }}
+            >
+              <div
+                className="absolute w-[130%] h-[130%] ring-deco anim-spin-slow-rev opacity-30 pointer-events-none"
+                style={{ borderColor: 'rgba(66,222,239,0.15)' }}
+              />
+              <div
+                className="absolute w-[90%] h-[90%] ring-deco anim-spin-slow opacity-20 pointer-events-none"
+                style={{ borderColor: 'rgba(66,222,239,0.10)' }}
+              />
+
+              <Image
+                src="/about-us.webp"
+                alt="Team Vamos"
+                fill
+                priority
+                className="object-cover object-center z-10"
+              />
+
+              <div className="absolute top-0 left-0 w-10 h-[2px] bg-[#42deef] z-20" />
+              <div className="absolute top-0 left-0 w-[2px] h-10 bg-[#42deef] z-20" />
+              <div className="absolute bottom-0 right-0 w-10 h-[2px] bg-[#42deef] z-20" />
+              <div className="absolute bottom-0 right-0 w-[2px] h-10 bg-[#42deef] z-20" />
+              <div className="absolute top-0 right-0 w-6 h-[1px] bg-[#42deef]/40 z-20" />
+              <div className="absolute bottom-0 left-0 w-6 h-[1px] bg-[#42deef]/40 z-20" />
+
+              <div className="absolute inset-0 bg-[#42deef] opacity-0 group-hover:opacity-[0.04] transition-opacity duration-500 blur-3xl z-10" />
             </div>
+          </div>
           </div>
         </div>
       </section>
