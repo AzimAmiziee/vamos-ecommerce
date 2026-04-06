@@ -1,14 +1,9 @@
 import Header from '@/app/components/Header';
 import Link from 'next/link';
-import { getArticleBySlug, getArticleSlugs } from '@/lib/db/articles';
+import { getArticleBySlug } from '@/lib/db/articles';
 import { notFound } from 'next/navigation';
 
-export const revalidate = 300;
-
-export async function generateStaticParams() {
-  const slugs = await getArticleSlugs();
-  return slugs.map((slug) => ({ slug }));
-}
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
