@@ -17,7 +17,7 @@ export default function ProductsPage() {
       .select('*')
       .eq('in_stock', true)
       .order('sort_order', { ascending: true })
-      .then(({ data }) => {
+      .then(({ data }: { data: DBProduct[] | null }) => {
         setProducts(data ?? []);
         setLoading(false);
       });
