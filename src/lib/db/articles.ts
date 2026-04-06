@@ -1,4 +1,4 @@
-import { createServerSupabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 
 export interface DBArticle {
   id: string;
@@ -14,7 +14,7 @@ export interface DBArticle {
 }
 
 export async function getArticles(): Promise<DBArticle[]> {
-  const supabase = createServerSupabase();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('articles')
     .select('id, slug, title, excerpt, cover_image, category, author, read_time, published_at, paragraphs')
@@ -29,7 +29,7 @@ export async function getArticles(): Promise<DBArticle[]> {
 }
 
 export async function getArticleBySlug(slug: string): Promise<DBArticle | null> {
-  const supabase = createServerSupabase();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('articles')
     .select('*')
@@ -40,7 +40,7 @@ export async function getArticleBySlug(slug: string): Promise<DBArticle | null> 
 }
 
 export async function getArticleSlugs(): Promise<string[]> {
-  const supabase = createServerSupabase();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('articles')
     .select('slug')

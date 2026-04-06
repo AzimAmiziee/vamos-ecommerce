@@ -4,7 +4,7 @@ import Header from '@/app/components/Header';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import { suppressNextSignIn } from '@/app/providers';
 
 export default function SignupPage() {
@@ -35,7 +35,7 @@ export default function SignupPage() {
     // Prevent auto-login before signUp fires the SIGNED_IN event
     suppressNextSignIn();
 
-    const { error: authError } = await supabase.auth.signUp({
+    const { error: authError } = await createClient().auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName, phone } },

@@ -1,4 +1,4 @@
-import { createServerSupabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 
 export interface DBProduct {
   id: string;
@@ -17,7 +17,7 @@ export interface DBProduct {
 }
 
 export async function getProducts(): Promise<DBProduct[]> {
-  const supabase = createServerSupabase();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('products')
     .select('*')
@@ -32,7 +32,7 @@ export async function getProducts(): Promise<DBProduct[]> {
 }
 
 export async function getProductById(id: string): Promise<DBProduct | null> {
-  const supabase = createServerSupabase();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('products')
     .select('*')

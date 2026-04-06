@@ -1,4 +1,4 @@
-import { createServerSupabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 
 export interface DBGamePackage {
   id: string;
@@ -28,7 +28,7 @@ export interface DBGame {
 }
 
 export async function getGames(): Promise<DBGame[]> {
-  const supabase = createServerSupabase();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('games')
     .select('*, game_packages(*)')
@@ -43,7 +43,7 @@ export async function getGames(): Promise<DBGame[]> {
 }
 
 export async function getGameBySlug(slug: string): Promise<DBGame | null> {
-  const supabase = createServerSupabase();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('games')
     .select('*, game_packages(*)')

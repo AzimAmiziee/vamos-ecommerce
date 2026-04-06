@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 
 export interface TopSpender {
   rank: number;
@@ -19,14 +19,14 @@ export interface ActiveSeason {
 
 export async function getTopSpenders(): Promise<TopSpender[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any).rpc('get_top_spenders', { p_limit: 5 });
+  const { data, error } = await (createClient() as any).rpc('get_top_spenders', { p_limit: 5 });
   if (error) return [];
   return (data ?? []) as TopSpender[];
 }
 
 export async function getActiveSeason(): Promise<ActiveSeason | null> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any).rpc('get_active_season');
+  const { data, error } = await (createClient() as any).rpc('get_active_season');
   if (error || !data?.length) return null;
   return data[0] as ActiveSeason;
 }

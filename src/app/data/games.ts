@@ -20,6 +20,8 @@ export interface Game {
   packages: GamePackage[];
 }
 
+const S = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/storage`;
+
 export const games: Game[] = [
 
   // ─── MOBILE GAMES ────────────────────────────────────────────────────────────
@@ -32,7 +34,7 @@ export const games: Game[] = [
     currency: 'Diamonds',
     color: '#1a6fd4',
     colorSecondary: '#0d3d7a',
-    image: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/Mobile_Legends_Bang_Bang_2025_logo.png/250px-Mobile_Legends_Bang_Bang_2025_logo.png',
+    image: `${S}/games/mlbb.webp`,
     category: 'Mobile Game',
     description: 'Top up Mobile Legends diamonds instantly. Cheapest price guaranteed.',
     packages: [
@@ -60,7 +62,7 @@ export const games: Game[] = [
     currency: 'Diamonds',
     color: '#f97316',
     colorSecondary: '#7c2d12',
-    image: 'https://upload.wikimedia.org/wikipedia/en/thumb/3/38/Free_Fire_New_Logo.svg/250px-Free_Fire_New_Logo.svg.png',
+    image: `${S}/games/free-fire.webp`,
     category: 'Mobile Game',
     description: 'Top up Free Fire diamonds fast and cheap. Instant delivery.',
     packages: [
@@ -85,7 +87,7 @@ export const games: Game[] = [
     currency: 'UC',
     color: '#eab308',
     colorSecondary: '#713f12',
-    image: 'https://upload.wikimedia.org/wikipedia/en/4/44/PlayerUnknown%27s_Battlegrounds_Mobile.webp',
+    image: `${S}/games/pubg.webp`,
     category: 'Mobile Game',
     description: 'Top up PUBG Mobile UC. Get bonus UC on every purchase.',
     packages: [
@@ -106,7 +108,7 @@ export const games: Game[] = [
     currency: 'CP',
     color: '#22c55e',
     colorSecondary: '#14532d',
-    image: 'https://upload.wikimedia.org/wikipedia/en/0/07/CODM_logo.png',
+    image: `${S}/games/codm.webp`,
     category: 'Mobile Game',
     description: 'Top up COD Mobile CP. Unlock weapons, skins and Battle Pass.',
     packages: [
@@ -127,7 +129,7 @@ export const games: Game[] = [
     currency: 'Genesis Crystals',
     color: '#06b6d4',
     colorSecondary: '#164e63',
-    image: 'https://upload.wikimedia.org/wikipedia/en/thumb/5/5d/Genshin_Impact_logo.svg/250px-Genshin_Impact_logo.svg.png',
+    image: `${S}/games/genshin.svg`,
     category: 'Mobile Game',
     description: 'Top up Genshin Impact Genesis Crystals. Convert to Primogems instantly.',
     packages: [
@@ -148,7 +150,7 @@ export const games: Game[] = [
     currency: 'Oneiric Shards',
     color: '#8b5cf6',
     colorSecondary: '#2e1065',
-    image: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/7f/Honkai_Star_Rail_%28logo%29.png/250px-Honkai_Star_Rail_%28logo%29.png',
+    image: `${S}/games/hsr.webp`,
     category: 'Mobile Game',
     description: 'Top up Honkai Star Rail Oneiric Shards. Fast and reliable.',
     packages: [
@@ -169,7 +171,7 @@ export const games: Game[] = [
     currency: 'Monochrome',
     color: '#f59e0b',
     colorSecondary: '#451a03',
-    image: 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d2/Zenless_Zone_Zero_curved_box_logo.svg/250px-Zenless_Zone_Zero_curved_box_logo.svg.png',
+    image: `${S}/games/zzz.svg`,
     category: 'Mobile Game',
     description: 'Top up Zenless Zone Zero Monochrome. Exchange for Polychrome and pulls.',
     packages: [
@@ -191,7 +193,7 @@ export const games: Game[] = [
     currency: 'Bonds',
     color: '#84cc16',
     colorSecondary: '#1a2e05',
-    image: 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Arena_Breakout_Cover.jpg/250px-Arena_Breakout_Cover.jpg',
+    image: `${S}/games/arena-breakout.webp`,
     category: 'Mobile Game',
     description: 'Top up Arena Breakout Bonds. Gear up and dominate the battlefield.',
     packages: [
@@ -215,7 +217,7 @@ export const games: Game[] = [
     currency: 'Eggy Coins',
     color: '#facc15',
     colorSecondary: '#422006',
-    image: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/Eggy_Party_English_logo_new.png/250px-Eggy_Party_English_logo_new.png',
+    image: `${S}/games/eggy-party.webp`,
     category: 'Mobile Game',
     description: 'Top up Eggy Party coins. Join the party and unlock exclusive items.',
     packages: [
@@ -240,7 +242,7 @@ export const games: Game[] = [
     currency: 'Nyan Berry',
     color: '#e11d48',
     colorSecondary: '#4c0519',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/RO_icon_file.png/256px-RO_icon_file.png',
+    image: `${S}/games/ragnarok.webp`,
     category: 'Mobile Game',
     description: 'Top up Ragnarok Origin Nyan Berry. Power up your character today.',
     packages: [
@@ -265,7 +267,7 @@ export const games: Game[] = [
     currency: 'VP',
     color: '#ef4444',
     colorSecondary: '#7f1d1d',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Valorant_logo_-_pink_color_version.svg/250px-Valorant_logo_-_pink_color_version.svg.png',
+    image: `${S}/games/valorant.webp`,
     category: 'PC Game',
     description: 'Top up Valorant Points (VP). Buy skins, battle pass and more.',
     packages: [
@@ -285,7 +287,7 @@ export const games: Game[] = [
     currency: 'Oneiric Shards',
     color: '#a78bfa',
     colorSecondary: '#2e1065',
-    image: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/7f/Honkai_Star_Rail_%28logo%29.png/250px-Honkai_Star_Rail_%28logo%29.png',
+    image: `${S}/games/hsr.webp`,
     category: 'PC Game',
     description: 'Top up Honkai Star Rail on PC. Same prices, instant delivery.',
     packages: [
@@ -305,7 +307,7 @@ export const games: Game[] = [
     currency: 'Genesis Crystals',
     color: '#38bdf8',
     colorSecondary: '#0c4a6e',
-    image: 'https://upload.wikimedia.org/wikipedia/en/thumb/5/5d/Genshin_Impact_logo.svg/250px-Genshin_Impact_logo.svg.png',
+    image: `${S}/games/genshin.svg`,
     category: 'PC Game',
     description: 'Top up Genshin Impact on PC. Fast and secure top up.',
     packages: [
@@ -328,7 +330,7 @@ export const games: Game[] = [
     currency: 'Robux',
     color: '#dc2626',
     colorSecondary: '#450a0a',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Roblox_Logo_2022.svg/250px-Roblox_Logo_2022.svg.png',
+    image: `${S}/games/roblox.webp`,
     category: 'Voucher',
     description: 'Top up Roblox Robux. Buy avatars, game passes and exclusive items.',
     packages: [
@@ -346,7 +348,7 @@ export const games: Game[] = [
     currency: 'Shells',
     color: '#f97316',
     colorSecondary: '#431407',
-    image: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/13/GarenaLogo.png/250px-GarenaLogo.png',
+    image: `${S}/games/garena.webp`,
     category: 'Voucher',
     description: 'Top up Garena Shells for Free Fire, AOV, FIFA Online and more.',
     packages: [
@@ -367,7 +369,7 @@ export const games: Game[] = [
     currency: 'Credit',
     color: '#4ade80',
     colorSecondary: '#052e16',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Google_Play_2022_logo.svg/200px-Google_Play_2022_logo.svg.png',
+    image: `${S}/games/google-play.webp`,
     category: 'Voucher',
     description: 'Google Play gift card. Use for any app, game or subscription on Google Play.',
     packages: [
@@ -388,7 +390,7 @@ export const games: Game[] = [
     currency: 'Wallet Credit',
     color: '#60a5fa',
     colorSecondary: '#1e3a5f',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Steam_logo.svg/200px-Steam_logo.svg.png',
+    image: `${S}/games/steam.svg`,
     category: 'Voucher',
     description: 'Steam wallet top up. Buy games, DLC and items on Steam.',
     packages: [

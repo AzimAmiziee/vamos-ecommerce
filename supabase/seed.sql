@@ -7,48 +7,48 @@
 insert into public.products (name, price, image, hover_image, category, collection, description, sizes, rating, sort_order) values
 (
   'Team Vamos S16 Pro Kit Jersey (HOME)', 119,
-  '/storage/products/jersey-home.jpg',
-  '/storage/products/jersey-home-hover.jpg',
+  '/storage/products/jersey-home.webp',
+  '/storage/products/jersey-home-hover.webp',
   'S16 Collection', 'S16 Collection',
   'No filters. No fear. No excuses. It''s Mask Off. Pro-level performance jersey engineered for the main stage.',
   ARRAY['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'], 5.0, 1
 ),
 (
   'Team Vamos S16 Pro Kit Jersey (AWAY)', 119,
-  '/storage/products/jersey-away.jpg',
-  '/storage/products/jersey-away-hover.jpg',
+  '/storage/products/jersey-away.webp',
+  '/storage/products/jersey-away-hover.webp',
   'S16 Collection', 'S16 Collection',
   'Engineered with pro-level performance and savage design. Built for the away battles where legends are made.',
   ARRAY['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'], 5.0, 2
 ),
 (
   'UNO DOS TRES', 79,
-  '/storage/products/uno-dos-tres.jpg',
-  '/storage/products/uno-dos-tres-hover.jpg',
+  '/storage/products/uno-dos-tres.webp',
+  '/storage/products/uno-dos-tres-hover.webp',
   'Street Wear', 'CTRL + PLAY',
   'Designed for those who take control and hit play on their own rules. Own the game, own the look.',
   ARRAY['S','M','L','XL','XXL'], 4.8, 3
 ),
 (
   'DARE TO BE HATED', 79,
-  '/storage/products/dare-to-be-hated.jpg',
-  '/storage/products/dare-to-be-hated-hover.jpg',
+  '/storage/products/dare-to-be-hated.webp',
+  '/storage/products/dare-to-be-hated-hover.webp',
   'Street Wear', 'CTRL + PLAY',
   'Playful graphics, loud statements, rebel-core nostalgia. For those who dare to stand out.',
   ARRAY['S','M','L','XL','XXL'], 4.9, 4
 ),
 (
   'HOMETOWN VILLAIN', 79,
-  '/storage/products/hometown-villain.jpg',
-  '/storage/products/hometown-villain-hover.jpg',
+  '/storage/products/hometown-villain.webp',
+  '/storage/products/hometown-villain-hover.webp',
   'Street Wear', 'CTRL + PLAY',
   'Designed to celebrate your identity. Be the villain of your own story — unapologetically.',
   ARRAY['S','L','XL','XXL'], 4.7, 5
 ),
 (
   'Mafla', 79,
-  '/storage/products/mafla.jpg',
-  '/storage/products/mafla-hover.jpg',
+  '/storage/products/mafla.webp',
+  '/storage/products/mafla-hover.webp',
   'S15 Collection', 'S15 Collection',
   'Part of the iconic Season 15 collection. A piece of Vamos history you can wear.',
   ARRAY['S','M','L','XL','XXL'], 4.6, 6
@@ -59,7 +59,7 @@ insert into public.products (name, price, image, hover_image, category, collecti
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('mobile-legends', 'Mobile Legends: Bang Bang', 'MLBB', 'Diamonds', '#1a6fd4', '#0d3d7a',
-    '/storage/games/mlbb.png',
+    '/storage/games/mlbb.webp',
     'Mobile Game', 'Top up Mobile Legends diamonds instantly. Cheapest price guaranteed.', 1)
   returning id
 )
@@ -79,7 +79,7 @@ insert into public.game_packages (game_id, package_key, amount, price, popular, 
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('free-fire', 'Free Fire', 'FF', 'Diamonds', '#f97316', '#7c2d12',
-    '/storage/games/free-fire.png',
+    '/storage/games/free-fire.webp',
     'Mobile Game', 'Top up Free Fire diamonds fast and cheap. Instant delivery.', 2)
   returning id
 )
@@ -98,7 +98,7 @@ insert into public.game_packages (game_id, package_key, amount, price, popular, 
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('pubg-mobile', 'PUBG Mobile', 'PUBG', 'UC', '#eab308', '#713f12',
-    '/storage/games/pubg.png',
+    '/storage/games/pubg.webp',
     'Mobile Game', 'Top up PUBG Mobile UC. Get bonus UC on every purchase.', 3)
   returning id
 )
@@ -115,7 +115,7 @@ insert into public.game_packages (game_id, package_key, amount, price, bonus, po
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('call-of-duty-mobile', 'Call of Duty Mobile', 'CODM', 'CP', '#22c55e', '#14532d',
-    '/storage/games/codm.png',
+    '/storage/games/codm.webp',
     'Mobile Game', 'Top up COD Mobile CP. Unlock weapons, skins and Battle Pass.', 4)
   returning id
 )
@@ -149,7 +149,7 @@ insert into public.game_packages (game_id, package_key, amount, price, popular, 
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('honkai-star-rail', 'Honkai: Star Rail', 'HSR', 'Oneiric Shards', '#8b5cf6', '#2e1065',
-    '/storage/games/hsr.png',
+    '/storage/games/hsr.webp',
     'Mobile Game', 'Top up Honkai Star Rail Oneiric Shards. Fast and reliable.', 6)
   returning id
 )
@@ -183,7 +183,7 @@ insert into public.game_packages (game_id, package_key, amount, price, popular, 
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('arena-breakout', 'Arena Breakout', 'AB', 'Bonds', '#84cc16', '#1a2e05',
-    '/storage/games/arena-breakout.jpg',
+    '/storage/games/arena-breakout.webp',
     'Mobile Game', 'Top up Arena Breakout Bonds. Gear up and dominate the battlefield.', 8)
   returning id
 )
@@ -201,7 +201,7 @@ insert into public.game_packages (game_id, package_key, amount, price, popular, 
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('eggy-party', 'Eggy Party', 'Eggy', 'Eggy Coins', '#facc15', '#422006',
-    '/storage/games/eggy-party.jpg',
+    '/storage/games/eggy-party.webp',
     'Mobile Game', 'Top up Eggy Party coins. Join the party and unlock exclusive items.', 9)
   returning id
 )
@@ -220,7 +220,7 @@ insert into public.game_packages (game_id, package_key, amount, price, popular, 
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('ragnarok-origin', 'Ragnarok Origin', 'RO', 'Nyan Berry', '#e11d48', '#4c0519',
-    '/storage/games/ragnarok.png',
+    '/storage/games/ragnarok.webp',
     'Mobile Game', 'Top up Ragnarok Origin Nyan Berry. Power up your character today.', 10)
   returning id
 )
@@ -237,7 +237,7 @@ insert into public.game_packages (game_id, package_key, amount, price, popular, 
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('valorant', 'Valorant', 'VAL', 'VP', '#ef4444', '#7f1d1d',
-    '/storage/games/valorant.png',
+    '/storage/games/valorant.webp',
     'PC Game', 'Top up Valorant Points (VP). Buy skins, battle pass and more.', 11)
   returning id
 )
@@ -253,7 +253,7 @@ insert into public.game_packages (game_id, package_key, amount, price, popular, 
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('honkai-star-rail-pc', 'Honkai: Star Rail (PC)', 'HSR PC', 'Oneiric Shards', '#a78bfa', '#2e1065',
-    '/storage/games/hsr.png',
+    '/storage/games/hsr.webp',
     'PC Game', 'Top up Honkai Star Rail on PC. Same prices, instant delivery.', 12)
   returning id
 )
@@ -285,7 +285,7 @@ insert into public.game_packages (game_id, package_key, amount, price, popular, 
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('roblox', 'Roblox', 'Roblox', 'Robux', '#dc2626', '#450a0a',
-    '/storage/games/roblox.png',
+    '/storage/games/roblox.webp',
     'Voucher', 'Top up Roblox Robux. Buy avatars, game passes and exclusive items.', 14)
   returning id
 )
@@ -300,7 +300,7 @@ insert into public.game_packages (game_id, package_key, amount, price, popular, 
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('garena-shells', 'Garena Shells', 'Garena', 'Shells', '#f97316', '#431407',
-    '/storage/games/garena.png',
+    '/storage/games/garena.webp',
     'Voucher', 'Top up Garena Shells for Free Fire, AOV, FIFA Online and more.', 15)
   returning id
 )
@@ -317,7 +317,7 @@ insert into public.game_packages (game_id, package_key, amount, price, popular, 
 with g as (
   insert into public.games (slug, name, short_name, currency, color, color_secondary, image, category, description, sort_order)
   values ('google-play', 'Google Play', 'G-Play', 'Credit', '#4ade80', '#052e16',
-    '/storage/games/google-play.png',
+    '/storage/games/google-play.webp',
     'Voucher', 'Google Play gift card. Use for any app, game or subscription on Google Play.', 16)
   returning id
 )

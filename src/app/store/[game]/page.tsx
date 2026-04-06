@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Header from '@/app/components/Header';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import { createTopupOrder } from '@/lib/db/orders';
 import { useAuth } from '@/app/providers';
 import type { DBGame, DBGamePackage } from '@/lib/db/games';
@@ -26,8 +26,8 @@ export default function GameStorePage() {
   useEffect(() => {
     const slug = params.game as string;
     Promise.all([
-      supabase.from('games').select('*, game_packages(*)').eq('slug', slug).eq('active', true).single(),
-      supabase.from('games').select('*, game_packages(*)').eq('active', true).order('sort_order', { ascending: true }),
+      createClient().from('games').select('*, game_packages(*)').eq('slug', slug).eq('active', true).single(),
+      createClient().from('games').select('*, game_packages(*)').eq('active', true).order('sort_order', { ascending: true }),
     ]).then(([gameRes, allRes]) => {
       if (gameRes.data) {
         const g = gameRes.data as DBGame;

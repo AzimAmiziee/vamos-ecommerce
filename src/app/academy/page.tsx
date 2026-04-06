@@ -4,6 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '@/app/components/Header';
 
+const S = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/storage`;
+
 const ACHIEVEMENTS = [
   {
     year: '2022',
@@ -44,7 +46,7 @@ const PROGRAMS = [
     description: 'Perfect for beginners looking to master the fundamentals of competitive Mobile Legends.',
     price: 70,
     originalPrice: 89,
-    image: '/storage/academy/program-beginner.webp',
+    image: `${S}/academy/program-beginner.webp`,
     tag: 'Early Bird',
     available: true,
     features: [
@@ -61,7 +63,7 @@ const PROGRAMS = [
     description: 'Master the fundamentals and build real synergy with your squad under pro-level coaching.',
     price: 300,
     originalPrice: 395,
-    image: '/storage/academy/program-beginner.webp',
+    image: `${S}/academy/program-beginner.webp`,
     tag: 'Best Value',
     available: true,
     features: [
@@ -78,7 +80,7 @@ const PROGRAMS = [
     description: 'Learn advanced techniques and competitive strategies used by MPL professionals.',
     price: null,
     originalPrice: null,
-    image: '/storage/academy/program-intermediate.webp',
+    image: `${S}/academy/program-intermediate.webp`,
     tag: 'Coming Soon',
     available: false,
     features: [
@@ -95,7 +97,7 @@ const PROGRAMS = [
     description: 'Compete at the highest level with structured squad training from MPL champions.',
     price: null,
     originalPrice: null,
-    image: '/storage/academy/program-intermediate.webp',
+    image: `${S}/academy/program-intermediate.webp`,
     tag: 'Coming Soon',
     available: false,
     features: [
@@ -145,7 +147,7 @@ export default function AcademyPage() {
           {/* Right — crest image, fully visible */}
           <div className="order-1 md:order-2 flex justify-center">
             <Image
-              src="/storage/academy/hero.webp"
+              src={`${S}/academy/hero.webp`}
               alt="Vamos Academy Crest"
               width={1117}
               height={997}
@@ -253,7 +255,7 @@ export default function AcademyPage() {
                 style={{ boxShadow: '0 0 60px rgba(66,222,239,0.08)' }}>
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#42deef] to-transparent z-10" />
                 <Image
-                  src="/storage/academy/coach-pabz.webp"
+                  src={`${S}/academy/coach-pabz.webp`}
                   alt="Coach Pabz"
                   width={500}
                   height={600}

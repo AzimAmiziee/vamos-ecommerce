@@ -4,7 +4,7 @@ import Header from '@/app/components/Header';
 import ProductCard from '@/app/components/ProductCard';
 import { useState, useEffect } from 'react';
 import type { DBProduct } from '@/lib/db/products';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -12,7 +12,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase
+    createClient()
       .from('products')
       .select('*')
       .eq('in_stock', true)
@@ -80,8 +80,12 @@ export default function ProductsPage() {
                   id: product.id,
                   name: product.name,
                   price: product.price,
-                  image: product.image ?? '',
-                  hoverImage: product.hover_image ?? undefined,
+                  image: product.image
+                    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/storage${product.image}`
+                    : '',
+                  hoverImage: product.hover_image
+                    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/storage${product.hover_image}`
+                    : undefined,
                   category: product.category,
                   collection: product.collection ?? '',
                   description: product.description ?? '',

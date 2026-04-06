@@ -2,9 +2,10 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 
-// Set this flag before calling signUp() to prevent auto-login
+const supabase = createClient();
+
 let _suppressNextSignIn = false;
 export function suppressNextSignIn() { _suppressNextSignIn = true; }
 
@@ -14,6 +15,7 @@ interface Profile {
   username: string | null;
   points: number;
   avatar_url: string | null;
+  role: 'customer' | 'admin' | 'vendor';
 }
 
 interface AuthContextType {
@@ -43,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
-      .select('id, full_name, username, points, avatar_url')
+      .select('id, full_name, username, points, avatar_url, role')
       .eq('id', userId)
       .single();
     if (data) setProfile(data);
@@ -54,10 +56,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, fetchProfile]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
+      if (session?.user) await fetchProfile(session.user.id);
       setLoading(false);
     });
 

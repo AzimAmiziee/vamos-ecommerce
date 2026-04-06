@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 
 export interface DBMatch {
   id: string;
@@ -28,7 +28,7 @@ export interface DBPrediction {
 }
 
 export async function getMatches(): Promise<DBMatch[]> {
-  const { data } = await supabase
+  const { data } = await createClient()
     .from('matches')
     .select('*')
     .order('sort_order', { ascending: true });
@@ -36,7 +36,7 @@ export async function getMatches(): Promise<DBMatch[]> {
 }
 
 export async function getUserPredictions(userId: string): Promise<DBPrediction[]> {
-  const { data } = await supabase
+  const { data } = await createClient()
     .from('predictions')
     .select('*')
     .eq('user_id', userId);
@@ -49,7 +49,7 @@ export async function submitPrediction(
   predHome: number,
   predAway: number,
 ): Promise<boolean> {
-  const { error } = await supabase.from('predictions').upsert({
+  const { error } = await createClient().from('predictions').upsert({
     user_id: userId,
     match_id: matchId,
     pred_home: predHome,

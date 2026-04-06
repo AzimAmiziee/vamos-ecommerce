@@ -1,49 +1,108 @@
 'use client';
 
 import Header from '@/app/components/Header';
-import ProductCard from '@/app/components/ProductCard';
+import { products } from '@/app/data/products';
 import type { Product } from '@/app/data/products';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase';
+import { useState, useEffect, useRef } from 'react';
 
-import { useState, useEffect } from 'react';
+type EditorialCardProps = {
+  product: Product;
+  className?: string;
+};
+
+function EditorialCard({ product, className = "" }: EditorialCardProps) {
+  const [hovered, setHovered] = useState(false);
+  const img = hovered && product.hoverImage ? product.hoverImage : product.image;
+
+  return (
+    <a
+      href="/products"
+      className={`relative block w-full h-full overflow-hidden group bg-[#0a0a0a] ${className}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Image */}
+      <img
+        src={img}
+        alt={product.name}
+        className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+      />
+
+      {/* Price chip */}
+      <div className="absolute top-0 left-0 bg-[#42deef] text-black px-3 py-1.5 text-[10px] font-black uppercase tracking-widest z-10">
+        RM {product.price}
+      </div>
+
+      {/* Collection chip */}
+      <div className="absolute top-0 right-0 bg-black/65 text-gray-400 px-3 py-1.5 text-[9px] uppercase tracking-widest z-10 backdrop-blur-sm">
+        {product.collection}
+      </div>
+
+      {/* Hover curtain */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col justify-end p-5 z-20">
+        <div className="text-[#42deef] text-[9px] font-black uppercase tracking-[0.35em] mb-1">
+          {product.category}
+        </div>
+        <h3 className="text-white font-black uppercase leading-tight mb-4 text-sm lg:text-base">
+          {product.name}
+        </h3>
+        <span className="inline-flex items-center gap-2 bg-[#42deef] text-black px-5 py-2.5 font-black text-[10px] uppercase tracking-[0.3em] w-fit">
+          Shop Now <span>→</span>
+        </span>
+      </div>
+    </a>
+  );
+}
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [partnerForm, setPartnerForm] = useState({ name: '', company: '', email: '', message: '' });
-  const [partnerSent, setPartnerSent] = useState(false);
+  const [partnerStatus, setPartnerStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [subEmail, setSubEmail] = useState('');
+  const [subStatus, setSubStatus] = useState<'idle' | 'loading' | 'success' | 'duplicate' | 'error'>('idle');
 
   useEffect(() => {
-    supabase
-      .from('products')
-      .select('*')
-      .eq('in_stock', true)
-      .order('sort_order', { ascending: true })
-      .limit(6)
-      .then(({ data }) => {
-        if (data) {
-          setFeaturedProducts(data.map((p) => ({
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            image: p.image ?? '',
-            hoverImage: p.hover_image ?? undefined,
-            category: p.category,
-            collection: p.collection ?? '',
-            description: p.description ?? '',
-            sizes: p.sizes ?? [],
-            rating: p.rating ?? 5.0,
-          })));
-        }
-      });
+    setFeaturedProducts(products.slice(0, 6));
   }, []);
 
-  const handlePartnerSubmit = (e: { preventDefault(): void }) => {
+  const handlePartnerSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
-    setPartnerSent(true);
+    setPartnerStatus('loading');
+    const res = await fetch('/api/inquiries', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ type: 'partnership', ...partnerForm }),
+    });
+    if (res.ok) {
+      setPartnerStatus('success');
+      setPartnerForm({ name: '', company: '', email: '', message: '' });
+    } else {
+      setPartnerStatus('error');
+    }
   };
 
-  /* Scroll-reveal observer — triggers all [data-reveal] elements */
+  const handleSubscribe = async (e: { preventDefault(): void }) => {
+    e.preventDefault();
+    if (!subEmail.trim()) return;
+    setSubStatus('loading');
+    const res = await fetch('/api/subscribe', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email: subEmail }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setSubStatus('success');
+      setSubEmail('');
+    } else if (data.error === 'duplicate') {
+      setSubStatus('duplicate');
+    } else {
+      setSubStatus('error');
+    }
+  };
+
+  /* Scroll reveal observer */
   useEffect(() => {
     const els = document.querySelectorAll('[data-reveal]');
     const observer = new IntersectionObserver(
@@ -55,110 +114,127 @@ export default function Home() {
           }
         });
       },
-      { threshold: 0.07, rootMargin: '0px 0px -60px 0px' }
+      { threshold: 0.06, rootMargin: '0px 0px -50px 0px' }
     );
     els.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, []);
 
+  const [heroMode, setHeroMode] = useState<'image' | 'video'>('video');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const cycleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const goToImage = () => {
+    setHeroMode('image');
+    cycleTimer.current = setTimeout(() => setHeroMode('video'), 5000);
+  };
+
+  useEffect(() => {
+    if (heroMode === 'video' && videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [heroMode]);
+
+  useEffect(() => {
+    return () => { if (cycleTimer.current) clearTimeout(cycleTimer.current); };
+  }, []);
+
+  const MARQUEE_WORDS = [
+    'MPL MALAYSIA', 'TEAM VAMOS', 'SEASON 15', 'FEARLESS',
+    'OFFICIAL STORE', 'REP YOUR TEAM', 'OWN THE BATTLEFIELD',
+  ];
+
   return (
-    <div className="min-h-screen" style={{ background: '#080c10' }}>
+    <div className="min-h-screen bg-black overflow-x-hidden">
+
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden min-h-screen flex flex-col justify-center">
-        {/* Background image */}
-        <div className="absolute inset-0">
-          <img src="/background.webp" alt="" className="w-full h-full object-cover object-center" />
-          {/* Dark overlays for premium depth */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#040d14]/85 via-[#040d14]/70 to-[#040d14]/95" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#040d14]/60 via-transparent to-[#040d14]/40" />
-        </div>
-        {/* Layered background */}
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Grid lines */}
-          <div className="absolute inset-0 bg-grid-lines opacity-100" />
-          {/* Dot grid on top */}
-          <div className="absolute inset-0 bg-dot-grid opacity-30" />
+      {/* ══════════════════════════════════════════════════
+          HERO — Full Screen Cinematic
+      ══════════════════════════════════════════════════ */}
+      <section className="relative min-h-screen flex flex-col justify-end overflow-hidden">
 
-          {/* Ambient glows */}
-          <div className="absolute -top-40 -left-40 w-[800px] h-[800px] rounded-full bg-[#42deef] opacity-[0.09] blur-[160px] anim-drift" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[500px] rounded-full bg-[#42deef] opacity-[0.06] blur-[130px] anim-glow-pulse" />
-          <div className="absolute -bottom-20 -right-20 w-[600px] h-[600px] rounded-full bg-[#1cc5d9] opacity-[0.07] blur-[120px]" />
-          <div className="absolute top-[10%] right-[15%] w-[300px] h-[300px] rounded-full bg-[#42deef] opacity-[0.05] blur-[80px] anim-glow-pulse" style={{ animationDelay: '1.5s' }} />
-
-          {/* Rotating rings */}
-          <div className="ring-deco anim-spin-slow"
-            style={{ width: '700px', height: '700px', top: '50%', left: '50%', marginTop: '-350px', marginLeft: '-350px', borderColor: 'rgba(66,222,239,0.08)' }} />
-          <div className="ring-deco anim-spin-slow-rev"
-            style={{ width: '950px', height: '950px', top: '50%', left: '50%', marginTop: '-475px', marginLeft: '-475px', borderColor: 'rgba(66,222,239,0.05)' }} />
-          <div className="ring-deco anim-spin-slow"
-            style={{ width: '1200px', height: '1200px', top: '50%', left: '50%', marginTop: '-600px', marginLeft: '-600px', borderColor: 'rgba(66,222,239,0.03)', animationDuration: '35s' }} />
-
-          {/* Diagonal teal shard */}
-          <div className="absolute top-0 right-0 w-[40%] h-full opacity-[0.08]"
-            style={{ background: 'linear-gradient(to left, rgba(66,222,239,0.2), transparent)', clipPath: 'polygon(25% 0, 100% 0, 100% 100%, 0% 100%)' }} />
-
-          {/* Horizontal hairlines */}
-          <div className="absolute top-[28%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#42deef]/30 to-transparent" />
-          <div className="absolute bottom-[28%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#42deef]/15 to-transparent" />
-          {/* Vertical accent lines */}
-          <div className="absolute top-0 left-[20%] w-px h-full bg-gradient-to-b from-[#42deef]/25 via-[#42deef]/08 to-transparent" />
-          <div className="absolute top-0 right-[20%] w-px h-full bg-gradient-to-b from-transparent via-[#42deef]/20 to-transparent" />
-
-          {/* Corner brackets */}
-          <div className="absolute top-8 left-8 w-12 h-12 border-l-2 border-t-2 border-[#42deef]/30" />
-          <div className="absolute top-8 right-8 w-12 h-12 border-r-2 border-t-2 border-[#42deef]/30" />
-          <div className="absolute bottom-8 left-8 w-12 h-12 border-l-2 border-b-2 border-[#42deef]/30" />
-          <div className="absolute bottom-8 right-8 w-12 h-12 border-r-2 border-b-2 border-[#42deef]/30" />
-
-          <div className="scan-line" />
+        {/* Background — image */}
+        <div className={`absolute inset-0 overflow-hidden transition-opacity duration-700 ${heroMode === 'image' ? 'opacity-100' : 'opacity-0'}`}>
+          <img
+            src="/background.webp"
+            alt=""
+            className="w-full h-full object-cover object-center anim-ken-burns"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/25" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/20" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 relative z-10 w-full">
-          <div className="flex flex-col items-center text-center">
-            {/* Team Logo — top */}
-            <div className="relative hero-fade hero-d1 mb-10">
-              <div className="absolute inset-0 bg-[#42deef] opacity-[0.20] blur-[80px] scale-150 rounded-full anim-glow-pulse" />
-              <div className="anim-float">
-                <Image
-                  src="/team-vamos-logo.webp"
-                  alt="Team Vamos"
-                  width={600}
-                  height={157}
-                  className="w-64 md:w-80 lg:w-[480px] h-auto object-contain relative z-10 drop-shadow-[0_0_60px_rgba(66,222,239,0.55)]"
-                />
-              </div>
-            </div>
+        {/* Background — video */}
+        <div className={`absolute inset-0 overflow-hidden transition-opacity duration-700 ${heroMode === 'video' ? 'opacity-100' : 'opacity-0'}`}>
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            onEnded={goToImage}
+            className="w-full h-full object-cover object-center"
+          >
+            <source src="/brand_assets/vamos-bg-video.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/25" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/20" />
+        </div>
 
-            {/* MPL MY tag */}
-            <div className="flex items-center gap-3 hero-fade hero-d2 mb-3">
-              <div className="h-px w-12 bg-[#42deef]" />
-              <span className="text-[#42deef] text-xs font-black tracking-[0.4em] uppercase">MPL Malaysia · Official Store</span>
-              <div className="h-px w-12 bg-[#42deef]" />
-            </div>
+        {/* Subtle noise */}
+        <div className="absolute inset-0 noise-overlay pointer-events-none" />
 
-            {/* Headline */}
-            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white uppercase tracking-tight leading-none hero-fade hero-d3 mb-4">
-              TEAM <br />
-              <span className="text-shimmer">VAMOS</span>
+        {/* Content — bottom anchored */}
+        <div className="relative z-10 w-full max-w-[1600px] mx-auto px-8 sm:px-14 lg:px-20 pb-16 pt-36">
+
+          {/* Overline */}
+          <div className="hero-fade hero-d1 flex items-center gap-4 mb-10">
+            <div className="w-2 h-2 rounded-full bg-[#42deef] anim-glow-pulse shrink-0" />
+            <span className="text-[#42deef] text-[10px] font-black tracking-[0.5em] uppercase">
+              <span className="block md:hidden">MPL Malaysia<br />Official Esports Store</span>
+              <span className="hidden md:inline">MPL Malaysia · Official Esports Store</span>
+            </span>
+          </div>
+
+          {/* Headline */}
+          <div className="overflow-hidden hero-fade hero-d2 mb-0">
+            <h1
+              className="font-black uppercase leading-[0.83] tracking-[-0.02em] text-white/10"
+              style={{
+                fontSize: 'clamp(3rem, 10vw, 10rem)',
+                WebkitTextStroke: '1.5px rgba(255,255,255,0.55)',
+                color: 'transparent',
+              }}
+            >
+              TEAM
             </h1>
+          </div>
+          <div className="overflow-hidden hero-fade hero-d3">
+            <h1
+              className="font-black uppercase leading-[0.83] tracking-[-0.02em]"
+              style={{ fontSize: 'clamp(3rem, 10vw, 10rem)', color: '#42deef' }}
+            >
+              VAMOS
+            </h1>
+          </div>
 
-            <p className="text-lg text-gray-400 max-w-md font-medium hero-fade hero-d4 mb-8">
+          {/* Bottom row */}
+          <div className="mt-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-8 hero-fade hero-d4">
+            <p className="text-gray-400 text-sm max-w-xs leading-relaxed">
               Fearless. Competitive. Unstoppable.<br />
               Rep your team. Own the battlefield.
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 hero-fade hero-d5">
+            <div className="flex flex-col sm:flex-row gap-0 shrink-0">
               <a
                 href="#shop"
-                className="btn-premium bg-[#42deef] text-[#0A0A0A] px-12 py-4 font-black text-xs tracking-[0.2em] uppercase hover:bg-[#1cc5d9] hover:shadow-[0_0_40px_rgba(66,222,239,0.5)] transition-all"
+                className="bg-[#42deef] text-black px-10 py-4 font-black text-[11px] tracking-[0.3em] uppercase hover:bg-white transition-colors duration-300"
               >
                 Shop Now
               </a>
               <a
                 href="/products"
-                className="btn-premium border border-[#42deef]/40 text-white px-12 py-4 font-black text-xs tracking-[0.2em] uppercase hover:border-[#42deef] hover:shadow-[0_0_20px_rgba(66,222,239,0.2)] transition-all"
+                className="border border-white/25 text-white px-10 py-4 font-black text-[11px] tracking-[0.3em] uppercase hover:bg-white/8 hover:border-white/50 transition-all duration-300"
               >
                 Full Collection
               </a>
@@ -166,67 +242,194 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#040d14] to-transparent pointer-events-none" />
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 right-10 hero-fade hero-d6 hidden md:flex flex-col items-center gap-3">
+          <span className="text-[9px] text-gray-500 uppercase tracking-[0.4em] rotate-90 mb-4">Scroll</span>
+          <div className="w-px h-14 bg-gradient-to-b from-[#42deef] to-transparent anim-scroll-line" />
+        </div>
+
+        {/* Hero mode toggle */}
+        <div className="absolute right-5 top-1/2 -translate-y-1/2 z-20 hidden md:flex flex-col gap-2 hero-fade hero-d5">
+          <button
+            onClick={() => setHeroMode('image')}
+            title="Photo"
+            className={`w-9 h-9 flex items-center justify-center border transition-all duration-300 ${
+              heroMode === 'image'
+                ? 'bg-[#42deef] border-[#42deef] text-black'
+                : 'border-white/25 text-white/40 hover:border-white/60 hover:text-white'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setHeroMode('video')}
+            title="Video"
+            className={`w-9 h-9 flex items-center justify-center border transition-all duration-300 ${
+              heroMode === 'video'
+                ? 'bg-[#42deef] border-[#42deef] text-black'
+                : 'border-white/25 text-white/40 hover:border-white/60 hover:text-white'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <polygon points="6 3 20 12 6 21 6 3" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Bottom edge fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
       </section>
 
-      {/* Stats Strip */}
-      <section className="relative py-6 overflow-hidden reveal" data-reveal
-        style={{ background: 'linear-gradient(90deg, #0a1a20 0%, #0d2028 50%, #0a1a20 100%)' }}>
-        {/* Glow backing */}
-        <div className="absolute inset-0 bg-[#42deef] opacity-[0.06]" />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#42deef]/60 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#42deef]/60 to-transparent" />
-        <div className="max-w-7xl mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      {/* ══════════════════════════════════════════════════
+          MARQUEE STRIP
+      ══════════════════════════════════════════════════ */}
+      <div className="bg-[#42deef] py-3.5 overflow-hidden border-y border-[#42deef]">
+        <div
+          className="flex anim-marquee whitespace-nowrap"
+          style={{ width: 'max-content', animationDuration: '16s' }}
+        >
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="flex items-center">
+              {MARQUEE_WORDS.map((word, j) => (
+                <span key={j} className="text-black font-black text-[11px] tracking-[0.45em] uppercase mx-5">
+                  {word} <span className="opacity-20 mx-2">·</span>
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════
+          STATS
+      ══════════════════════════════════════════════════ */}
+      <section className="bg-black reveal" data-reveal>
+        <div className="max-w-[1600px] mx-auto px-8 sm:px-14 lg:px-20">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/[0.06]">
             {[
-              { label: 'Season Wins', value: '12+' },
-              { label: 'MPL Titles', value: '2' },
-              { label: 'Community', value: '50K+' },
-              { label: 'Team Members', value: '10' },
-            ].map((stat) => (
-              <div key={stat.label} className="group">
-                <div className="text-[#42deef] font-black text-3xl md:text-4xl group-hover:drop-shadow-[0_0_12px_rgba(66,222,239,0.8)] transition-all duration-300">{stat.value}</div>
-                <div className="text-gray-400 text-xs uppercase tracking-[0.2em] mt-1">{stat.label}</div>
+              { label: 'Season Wins', value: '12+', sub: 'and counting' },
+              { label: 'MPL Titles',  value: '2',   sub: 'back to back' },
+              { label: 'Community',   value: '50K+', sub: 'strong & growing' },
+              { label: 'Team',        value: '10',   sub: 'elite players' },
+            ].map((s) => (
+              <div key={s.label} className="group py-12 px-8 hover:bg-white/[0.02] transition-colors duration-500 cursor-default">
+                <div
+                  className="font-black leading-none tracking-tighter mb-2 group-hover:text-white transition-colors duration-300"
+                  style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', color: '#42deef' }}
+                >
+                  {s.value}
+                </div>
+                <div className="text-white text-xs font-black uppercase tracking-widest mb-1">{s.label}</div>
+                <div className="text-gray-600 text-[10px] uppercase tracking-widest">{s.sub}</div>
               </div>
             ))}
           </div>
         </div>
+        <div className="w-full h-px bg-white/[0.06]" />
       </section>
 
-      {/* Featured Products */}
-      <section id="shop" className="py-24 px-4 relative overflow-hidden reveal" data-reveal
-        style={{ background: 'linear-gradient(180deg, #040d14 0%, #060b10 100%)' }}>
-        <div className="absolute inset-0 bg-grid-lines opacity-40 pointer-events-none" />
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex items-end justify-between mb-12">
+      {/* ══════════════════════════════════════════════════
+          PRODUCTS — Editorial layout
+      ══════════════════════════════════════════════════ */}
+      <section id="shop" className="bg-white pt-24 pb-28 relative overflow-hidden" data-header-theme="light">
+        <div
+          className="absolute -bottom-8 right-0 font-black uppercase leading-none select-none pointer-events-none"
+          style={{
+            fontSize: 'clamp(8rem, 28vw, 26rem)',
+            WebkitTextStroke: '1px rgba(0,0,0,0.035)',
+            color: 'transparent',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          DROPS
+        </div>
+
+        <div className="max-w-[1600px] mx-auto px-8 sm:px-14 lg:px-20 relative z-10">
+          <div className="flex items-end justify-between mb-2 reveal" data-reveal>
             <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-px w-8 bg-[#42deef]" />
-                <span className="text-[#42deef] text-xs font-black tracking-[0.3em] uppercase">Official Merchandise</span>
+              <span className="text-[#42deef] text-[10px] font-black tracking-[0.5em] uppercase">
+                Official Merchandise
+              </span>
+              <div className="mt-2">
+                <span
+                  className="font-black uppercase leading-[0.88] tracking-tighter block mask-clip"
+                  style={{ fontSize: 'clamp(3rem, 8vw, 7.5rem)' }}
+                >
+                  <span className="mask-clip-inner d1 inline-block">
+                    <span style={{ WebkitTextStroke: '1.5px #000', color: 'transparent' }}>LATEST&nbsp;</span>
+                    <span className="text-black">DROPS</span>
+                  </span>
+                </span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-black text-white uppercase">
-                Featured <span className="text-[#42deef]">Drops</span>
-              </h2>
             </div>
+
             <a
               href="/products"
-              className="text-gray-500 text-xs font-black hover:text-white uppercase tracking-widest transition-colors hidden md:block"
+              className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] hover-underline hover:text-black transition-colors duration-300 hidden md:block pb-3"
             >
               View All →
             </a>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <div className="w-full h-px bg-black/8 mb-6" />
 
-          <div className="text-center mt-12 md:hidden">
+          {featuredProducts.length > 0 ? (
+            <div className="flex flex-col gap-1.5">
+              {/* Row 1 */}
+              <div className="flex gap-1.5 min-h-0" style={{ height: 'clamp(420px, 58vh, 640px)' }}>
+                <div className="w-[42%] h-full min-h-0">
+                  {featuredProducts[0] && (
+                    <EditorialCard product={featuredProducts[0]} className="h-full" />
+                  )}
+                </div>
+                <div className="w-[58%] h-full flex flex-row gap-1.5 min-h-0">
+                  <div className="flex-1 min-h-0">
+                    {featuredProducts[1] && (
+                      <EditorialCard product={featuredProducts[1]} className="h-full" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    {featuredProducts[2] && (
+                      <EditorialCard product={featuredProducts[2]} className="h-full" />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 2 */}
+              <div className="flex gap-1.5 min-h-0" style={{ height: 'clamp(260px, 36vh, 420px)' }}>
+                {featuredProducts.slice(3, 6).map((product) => (
+                  <div key={product.id} className="flex-1 h-full min-h-0">
+                    <EditorialCard product={product} className="h-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <div className="flex gap-1.5 h-[480px]">
+                <div className="w-[42%] bg-black/5 animate-pulse" />
+                <div className="w-[58%] flex flex-col gap-1.5">
+                  <div className="flex-1 bg-black/5 animate-pulse" />
+                  <div className="flex-1 bg-black/5 animate-pulse" />
+                </div>
+              </div>
+              <div className="flex gap-1.5 h-[300px]">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="flex-1 bg-black/5 animate-pulse" />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="text-center mt-8 md:hidden">
             <a
               href="/products"
-              className="inline-block border border-[#333] text-white px-8 py-3 font-black text-xs uppercase tracking-widest hover:border-[#42deef] hover:text-[#42deef] transition-colors"
+              className="inline-block border-2 border-black text-black px-10 py-4 font-black text-[11px] uppercase tracking-[0.3em] hover:bg-black hover:text-white transition-colors duration-300"
             >
               View All Products
             </a>
@@ -234,111 +437,144 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Brand Story */}
-      <section className="py-24 px-4 border-y border-[#1A1A1A] overflow-hidden relative"
-        style={{ background: 'linear-gradient(135deg, #080e14 0%, #0a1018 50%, #060c12 100%)' }}>
-        <div className="absolute inset-0 bg-dot-grid opacity-20 pointer-events-none" />
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-[#42deef] opacity-[0.04] blur-[100px] pointer-events-none" />
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="reveal-left" data-reveal>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-px w-8 bg-[#42deef]" />
-                <span className="text-[#42deef] text-xs font-black tracking-[0.3em] uppercase">Our Story</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-black text-white uppercase mb-6 leading-tight">
-                Born From<br />Malaysian{' '}
-                <span className="text-[#42deef]">Esports</span>
-              </h2>
-              <p className="text-gray-400 leading-relaxed mb-5">
-                Team Vamos represents the heart of Malaysian competitive gaming.
-                Built on passion, discipline, and relentless drive — we compete in
-                MPL MY to bring pride to every fan.
-              </p>
-              <p className="text-gray-400 leading-relaxed mb-8">
-                Every piece of merch you wear is a statement — you stand with us,
-                believe in the grind, and share our hunger to dominate.
-              </p>
-              <a
-                href="/products"
-                className="inline-block bg-[#42deef] text-[#0A0A0A] px-8 py-3 font-black text-xs uppercase tracking-widest hover:bg-[#1cc5d9] transition-colors"
-              >
-                Shop The Collection
-              </a>
+      {/* ══════════════════════════════════════════════════
+          BRAND STORY
+      ══════════════════════════════════════════════════ */}
+      <section className="flex flex-col md:flex-row min-h-[85vh]">
+        <div
+          className="relative w-full md:w-1/2 h-80 md:h-auto min-h-[450px] overflow-hidden reveal-left"
+          data-reveal
+        >
+          <Image
+            src="/about-us.webp"
+            alt="Team Vamos"
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover object-center"
+          />
+          <div className="absolute top-0 right-0 w-14 h-14 bg-[#42deef] z-10" />
+          <div className="absolute bottom-0 left-0 w-7 h-7 bg-[#42deef] z-10" />
+        </div>
+
+        <div className="w-full md:w-1/2 bg-black flex items-center reveal" data-reveal>
+          <div className="px-10 lg:px-16 xl:px-20 py-16 lg:py-24">
+            <span className="text-[#42deef] text-[10px] font-black tracking-[0.5em] uppercase">Our Story</span>
+
+            <div className="mt-4 mb-8 space-y-0">
+              {['Born From', 'Malaysian', 'Esports'].map((line, i) => (
+                <div key={i} className="mask-clip">
+                  <span
+                    className={`mask-clip-inner d${i + 1} block font-black text-white uppercase leading-[0.9] tracking-tighter`}
+                    style={{
+                      fontSize: 'clamp(2.5rem, 5.5vw, 5.5rem)',
+                      color: i === 2 ? '#42deef' : undefined,
+                    }}
+                  >
+                    {line}
+                  </span>
+                </div>
+              ))}
             </div>
 
-            {/* Brand visual */}
-            <div className="relative reveal-right" data-reveal>
-            <div
-              className="aspect-square bg-[#060d14] border border-[#1A1A1A] hover:border-[#42deef]/50 transition-colors duration-500 overflow-hidden relative group"
-              style={{ boxShadow: '0 0 60px rgba(66,222,239,0.05)' }}
+            <p className="text-gray-400 leading-relaxed mb-4 max-w-sm">
+              Team Vamos represents the heart of Malaysian competitive gaming.
+              Built on passion, discipline, and relentless drive — we compete in
+              MPL MY to bring pride to every fan.
+            </p>
+            <p className="text-gray-600 text-sm leading-relaxed mb-12 max-w-sm">
+              Every piece of merch you wear is a statement — you stand with us,
+              believe in the grind, and share our hunger to dominate.
+            </p>
+
+            <a
+              href="/products"
+              className="btn-wipe inline-block border border-[#42deef] text-[#42deef] px-10 py-4 font-black text-[11px] uppercase tracking-[0.3em]"
             >
-              <div
-                className="absolute w-[130%] h-[130%] ring-deco anim-spin-slow-rev opacity-30 pointer-events-none"
-                style={{ borderColor: 'rgba(66,222,239,0.15)' }}
-              />
-              <div
-                className="absolute w-[90%] h-[90%] ring-deco anim-spin-slow opacity-20 pointer-events-none"
-                style={{ borderColor: 'rgba(66,222,239,0.10)' }}
-              />
-
-              <Image
-                src="/about-us.webp"
-                alt="Team Vamos"
-                fill
-                priority
-                className="object-cover object-center z-10"
-              />
-
-              <div className="absolute top-0 left-0 w-10 h-[2px] bg-[#42deef] z-20" />
-              <div className="absolute top-0 left-0 w-[2px] h-10 bg-[#42deef] z-20" />
-              <div className="absolute bottom-0 right-0 w-10 h-[2px] bg-[#42deef] z-20" />
-              <div className="absolute bottom-0 right-0 w-[2px] h-10 bg-[#42deef] z-20" />
-              <div className="absolute top-0 right-0 w-6 h-[1px] bg-[#42deef]/40 z-20" />
-              <div className="absolute bottom-0 left-0 w-6 h-[1px] bg-[#42deef]/40 z-20" />
-
-              <div className="absolute inset-0 bg-[#42deef] opacity-0 group-hover:opacity-[0.04] transition-opacity duration-500 blur-3xl z-10" />
-            </div>
-          </div>
+              Shop The Collection
+            </a>
           </div>
         </div>
       </section>
 
-      {/* Forza Vamos — Fan Community */}
-      <section className="relative overflow-hidden reveal" data-reveal>
-        {/* Background image */}
+      {/* ══════════════════════════════════════════════════
+          DOUBLE MARQUEE
+      ══════════════════════════════════════════════════ */}
+      <div className="overflow-hidden">
+        <div className="bg-black py-3 border-y border-white/[0.06] overflow-hidden">
+          <div
+            className="flex anim-marquee whitespace-nowrap"
+            style={{ width: 'max-content', animationDuration: '20s' }}
+          >
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="flex items-center">
+                {MARQUEE_WORDS.map((word, j) => (
+                  <span key={j} className="text-white/20 font-black text-[11px] tracking-[0.45em] uppercase mx-5">
+                    {word} <span className="opacity-40 mx-2">·</span>
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-[#42deef] py-3 overflow-hidden">
+          <div
+            className="flex anim-marquee-rev whitespace-nowrap"
+            style={{ width: 'max-content', animationDuration: '20s' }}
+          >
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="flex items-center">
+                {[...MARQUEE_WORDS].reverse().map((word, j) => (
+                  <span key={j} className="text-black/40 font-black text-[11px] tracking-[0.45em] uppercase mx-5">
+                    {word} <span className="opacity-40 mx-2">·</span>
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════
+          FORZA VAMOS
+      ══════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden min-h-[80vh] flex items-center reveal" data-reveal>
         <div className="absolute inset-0">
           <img
             src="/forza-vamos.webp"
             alt="Forza Vamos community"
             className="w-full h-full object-cover object-center"
           />
-          {/* Multi-layer dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0A] via-[#0A0A0A]/85 to-[#0A0A0A]/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-[#0A0A0A]/60" />
-          <div className="absolute inset-0 bg-dot-grid opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/93 via-black/70 to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30" />
+          <div className="absolute inset-0 noise-overlay" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 py-28 md:py-36">
+        <div className="relative z-10 w-full max-w-[1600px] mx-auto px-8 sm:px-14 lg:px-20 py-24">
           <div className="max-w-2xl">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 border border-[#42deef]/30 bg-[#42deef]/10 px-4 py-2 mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#42deef] anim-glow-pulse" />
-              <span className="text-[#42deef] text-xs font-black tracking-[0.35em] uppercase">Fan Community</span>
+            <div className="inline-flex items-center gap-2.5 border border-[#42deef]/40 bg-[#42deef]/8 px-4 py-2 mb-10">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#42deef] anim-glow-pulse shrink-0" />
+              <span className="text-[#42deef] text-[10px] font-black tracking-[0.45em] uppercase">Fan Community</span>
             </div>
 
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase leading-none mb-2">
+            <h2
+              className="font-black text-white uppercase leading-none"
+              style={{ fontSize: 'clamp(4rem, 12vw, 10rem)' }}
+            >
               FORZA
             </h2>
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase leading-none mb-8">
-              <span className="text-shimmer">VAMOS</span>
+            <h2
+              className="font-black uppercase leading-none mb-10"
+              style={{ fontSize: 'clamp(4rem, 12vw, 10rem)', color: '#42deef' }}
+            >
+              VAMOS
             </h2>
 
-            <p className="text-gray-300 text-lg leading-relaxed mb-3 max-w-lg">
-              The official Team Vamos fan community. Follow every match, get the latest news, exclusive updates and connect with thousands of Vamos supporters across Malaysia.
+            <p className="text-gray-300 text-base leading-relaxed mb-2 max-w-md">
+              The official Team Vamos fan community. Follow every match, get the latest
+              news, exclusive updates and connect with thousands of supporters.
             </p>
-            <p className="text-gray-500 text-sm mb-10">
-              Join 2,000+ fans already in the group.
+            <p className="text-gray-600 text-xs uppercase tracking-widest mb-10">
+              Join 2,000+ fans already in the group
             </p>
 
             <div className="flex flex-wrap gap-4">
@@ -346,70 +582,59 @@ export default function Home() {
                 href="https://t.me/ForzaVamos/2616"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 bg-[#42deef] text-[#0A0A0A] px-8 py-4 font-black text-xs tracking-[0.2em] uppercase hover:bg-[#1cc5d9] hover:shadow-[0_0_30px_rgba(66,222,239,0.4)] transition-all"
+                className="inline-flex items-center gap-3 bg-[#42deef] text-black px-8 py-4 font-black text-[11px] tracking-[0.25em] uppercase hover:bg-white transition-colors duration-300"
               >
-                {/* Telegram icon */}
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
                 </svg>
                 Join Forza Vamos
               </a>
               <a
                 href="/news"
-                className="inline-flex items-center gap-2 border border-[#444] text-white px-8 py-4 font-black text-xs tracking-[0.2em] uppercase hover:border-[#42deef] hover:text-[#42deef] transition-all"
+                className="inline-flex items-center gap-2 border border-white/30 text-white px-8 py-4 font-black text-[11px] tracking-[0.25em] uppercase hover:bg-white/8 hover:border-white/60 transition-all duration-300"
               >
                 Latest News →
               </a>
             </div>
           </div>
         </div>
-
-        {/* Right edge fade */}
-        <div className="absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-[#0A0A0A] to-transparent pointer-events-none hidden md:block" />
       </section>
 
-      {/* Sponsors Section */}
-      <section className="py-20 px-4 bg-[#080808] border-y border-[#1A1A1A] reveal" data-reveal>
-        <div className="max-w-7xl mx-auto">
+      {/* ══════════════════════════════════════════════════
+          SPONSORS
+      ══════════════════════════════════════════════════ */}
+      <section className="py-20 px-4 bg-black reveal" data-reveal>
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-10 lg:px-16">
           <div className="text-center mb-14">
             <div className="flex items-center justify-center gap-3 mb-3">
               <div className="h-px w-8 bg-[#42deef]" />
-              <span className="text-[#42deef] text-xs font-black tracking-[0.4em] uppercase">Powered By</span>
+              <span className="text-[#42deef] text-[10px] font-black tracking-[0.5em] uppercase">Powered By</span>
               <div className="h-px w-8 bg-[#42deef]" />
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-white uppercase">
-              Our <span className="text-[#42deef]">Sponsors</span>
+            <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight">
+              Our <span style={{ color: '#42deef' }}>Sponsors</span>
             </h2>
-            <p className="text-gray-500 text-sm mt-3 max-w-md mx-auto">
+            <p className="text-gray-600 text-sm mt-3">
               The brands and partners that fuel our journey to the top.
             </p>
           </div>
 
-          {/* Infinite scrolling ticker */}
           <div className="relative overflow-hidden mb-12">
-            {/* Left fade */}
-            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#080808] to-transparent z-10 pointer-events-none" />
-            {/* Right fade */}
-            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#080808] to-transparent z-10 pointer-events-none" />
-
+            <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
             <div className="flex anim-marquee" style={{ width: 'max-content' }}>
-              {/* Render twice for seamless loop */}
               {[...Array(2)].map((_, setIdx) => (
                 <div key={setIdx} className="flex items-center">
                   {[
-                    '/Sponsor-01.webp',
-                    '/Sponsor-02.webp',
-                    '/Sponsor-03.webp',
-                    '/Sponsor-04.webp',
-                    '/Sponsor-05.webp',
-                    '/Sponsor-06.webp',
+                    '/Sponsor-01.webp', '/Sponsor-02.webp', '/Sponsor-03.webp',
+                    '/Sponsor-04.webp', '/Sponsor-05.webp', '/Sponsor-06.webp',
                     '/Sponsor-07.webp',
                   ].map((src, i) => (
-                    <div key={i} className="flex items-center justify-center w-96 h-48 mx-10 group shrink-0">
+                    <div key={i} className="flex items-center justify-center w-96 h-48 mx-8 group shrink-0">
                       <img
                         src={src}
                         alt="Sponsor"
-                        className="max-h-40 max-w-full object-contain opacity-50 group-hover:opacity-90 group-hover:drop-shadow-[0_0_16px_rgba(66,222,239,0.5)] transition-all duration-300"
+                        className="max-h-40 max-w-full object-contain opacity-40 group-hover:opacity-100 transition-opacity duration-400"
                       />
                     </div>
                   ))}
@@ -418,12 +643,13 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Become a sponsor CTA */}
-          <div className="text-center pt-10 border-t border-[#1A1A1A]">
-            <p className="text-gray-500 text-sm mb-4">Interested in partnering with Team Vamos?</p>
+          <div className="text-center pt-10 border-t border-white/[0.06]">
+            <p className="text-gray-600 text-xs uppercase tracking-widest mb-5">
+              Interested in partnering with Team Vamos?
+            </p>
             <a
               href="mailto:admin@vamos.com.my"
-              className="inline-block border border-[#42deef] text-[#42deef] px-8 py-3 font-black text-xs uppercase tracking-widest hover:bg-[#42deef] hover:text-[#0A0A0A] transition-colors"
+              className="btn-wipe inline-block border border-[#42deef] text-[#42deef] px-10 py-3.5 font-black text-[11px] uppercase tracking-[0.3em]"
             >
               Become a Sponsor
             </a>
@@ -431,24 +657,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* YouTube Section */}
-      <section className="py-24 px-4 bg-[#0A0A0A] reveal" data-reveal>
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-px w-8 bg-[#42deef]" />
-            <span className="text-[#42deef] text-xs font-black tracking-[0.3em] uppercase">Watch Us Play</span>
+      {/* ══════════════════════════════════════════════════
+          YOUTUBE
+      ══════════════════════════════════════════════════ */}
+      <section className="py-24 bg-white reveal" data-reveal data-header-theme="light">
+        <div className="max-w-[1600px] mx-auto px-8 sm:px-14 lg:px-20">
+          <div className="flex items-end justify-between mb-2">
+            <div>
+              <span className="text-[#42deef] text-[10px] font-black tracking-[0.5em] uppercase">Watch Us Play</span>
+              <h2
+                className="font-black text-black uppercase mt-2 leading-none tracking-tighter"
+                style={{ fontSize: 'clamp(2.5rem, 6vw, 5.5rem)' }}
+              >
+                Latest{' '}
+                <span style={{ WebkitTextStroke: '1.5px #000', color: 'transparent' }}>
+                  Highlights
+                </span>
+              </h2>
+            </div>
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white uppercase mb-12">
-            Latest <span className="text-[#42deef]">Highlights</span>
-          </h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {[
-              'EGFnvXaMnSY',
-              'VbGflD4nBeM',
-              'oxE1ZP1dfp0',
-              'O9nB5kGJCNI',
-            ].map((videoId) => (
-              <div key={videoId} className="aspect-video border border-[#1A1A1A] overflow-hidden">
+          <div className="w-full h-px bg-black/8 mb-12" />
+          <div className="grid md:grid-cols-2 gap-5">
+            {['EGFnvXaMnSY', 'VbGflD4nBeM', 'oxE1ZP1dfp0', 'O9nB5kGJCNI'].map((videoId) => (
+              <div
+                key={videoId}
+                className="aspect-video overflow-hidden border border-black/8 card-lift"
+              >
                 <iframe
                   src={`https://www.youtube.com/embed/${videoId}`}
                   title={`Team Vamos highlight ${videoId}`}
@@ -462,198 +696,202 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Social Media Section */}
-      <section className="py-20 px-4 bg-[#0D0D0D] border-y border-[#1A1A1A] reveal" data-reveal>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <div className="h-px w-8 bg-[#42deef]" />
-              <span className="text-[#42deef] text-xs font-black tracking-[0.4em] uppercase">Follow the Journey</span>
-              <div className="h-px w-8 bg-[#42deef]" />
+      {/* ══════════════════════════════════════════════════
+          SOCIAL
+      ══════════════════════════════════════════════════ */}
+      <section className="bg-black reveal" data-reveal>
+        <div className="max-w-[1600px] mx-auto px-8 sm:px-14 lg:px-20 pt-20 pb-8">
+          <div className="flex items-end justify-between mb-12">
+            <div>
+              <span className="text-[#42deef] text-[10px] font-black tracking-[0.5em] uppercase">Follow the Journey</span>
+              <h2
+                className="font-black text-white uppercase mt-2 leading-none tracking-tighter"
+                style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)' }}
+              >
+                Our{' '}
+                <span style={{ color: '#42deef' }}>Community</span>
+              </h2>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-white uppercase">
-              Join Our <span className="text-[#42deef]">Community</span>
-            </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* TikTok */}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-[#42deef]/15">
+          {[
+            {
+              href: 'https://www.tiktok.com/@officialteamvamos',
+              count: '127K', label: 'Followers', platform: 'TikTok', handle: '@officialteamvamos',
+              icon: <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.24 8.24 0 004.81 1.54V6.77a4.85 4.85 0 01-1.04-.08z" /></svg>,
+            },
+            {
+              href: 'https://www.youtube.com/@officialteamvamos',
+              count: '25.1K', label: 'Subscribers', platform: 'YouTube', handle: '@officialteamvamos',
+              icon: <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.55 3.5 12 3.5 12 3.5s-7.55 0-9.38.55A3.02 3.02 0 00.5 6.19 31.7 31.7 0 000 12a31.7 31.7 0 00.5 5.81 3.02 3.02 0 002.12 2.14C4.45 20.5 12 20.5 12 20.5s7.55 0 9.38-.55a3.02 3.02 0 002.12-2.14A31.7 31.7 0 0024 12a31.7 31.7 0 00-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z" /></svg>,
+            },
+            {
+              href: 'https://www.instagram.com/officialteamvamos/',
+              count: '48.5K', label: 'Followers', platform: 'Instagram', handle: '@officialteamvamos',
+              icon: <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>,
+            },
+          ].map((s) => (
             <a
-              href="https://www.tiktok.com/@officialteamvamos"
+              key={s.platform}
+              href={s.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#111] border border-[#1A1A1A] hover:border-[#42deef] transition-colors duration-300 p-8 flex flex-col items-center text-center group"
+              className="bg-black hover:bg-[#080808] transition-colors duration-400 p-12 flex flex-col items-start group"
             >
-              <div className="w-14 h-14 bg-[#0A0A0A] border border-[#1A1A1A] group-hover:border-[#42deef] flex items-center justify-center mb-5 transition-colors">
-                <svg className="w-7 h-7 text-white group-hover:text-[#42deef] transition-colors" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.24 8.24 0 004.81 1.54V6.77a4.85 4.85 0 01-1.04-.08z" />
-                </svg>
+              <div className="w-12 h-12 flex items-center justify-center mb-8 text-gray-600 group-hover:text-[#42deef] transition-colors duration-300">
+                {s.icon}
               </div>
-              <div className="text-3xl font-black text-white mb-1">127K</div>
-              <div className="text-gray-500 text-xs uppercase tracking-widest mb-3">Followers</div>
-              <div className="text-white font-black text-xs uppercase tracking-widest mb-1">TikTok</div>
-              <div className="text-gray-600 text-xs">@officialteamvamos</div>
-            </a>
-            {/* YouTube */}
-            <a
-              href="https://www.youtube.com/@officialteamvamos"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-[#111] border border-[#1A1A1A] hover:border-[#42deef] transition-colors duration-300 p-8 flex flex-col items-center text-center group"
-            >
-              <div className="w-14 h-14 bg-[#0A0A0A] border border-[#1A1A1A] group-hover:border-[#42deef] flex items-center justify-center mb-5 transition-colors">
-                <svg className="w-7 h-7 text-white group-hover:text-[#42deef] transition-colors" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.55 3.5 12 3.5 12 3.5s-7.55 0-9.38.55A3.02 3.02 0 00.5 6.19 31.7 31.7 0 000 12a31.7 31.7 0 00.5 5.81 3.02 3.02 0 002.12 2.14C4.45 20.5 12 20.5 12 20.5s7.55 0 9.38-.55a3.02 3.02 0 002.12-2.14A31.7 31.7 0 0024 12a31.7 31.7 0 00-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z" />
-                </svg>
+              <div
+                className="font-black text-white leading-none mb-2 tracking-tighter group-hover:text-[#42deef] transition-colors duration-300"
+                style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)' }}
+              >
+                {s.count}
               </div>
-              <div className="text-3xl font-black text-white mb-1">25.1K</div>
-              <div className="text-gray-500 text-xs uppercase tracking-widest mb-3">Subscribers</div>
-              <div className="text-white font-black text-xs uppercase tracking-widest mb-1">YouTube</div>
-              <div className="text-gray-600 text-xs">@officialteamvamos</div>
-            </a>
-            {/* Instagram */}
-            <a
-              href="https://www.instagram.com/officialteamvamos/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-[#111] border border-[#1A1A1A] hover:border-[#42deef] transition-colors duration-300 p-8 flex flex-col items-center text-center group"
-            >
-              <div className="w-14 h-14 bg-[#0A0A0A] border border-[#1A1A1A] group-hover:border-[#42deef] flex items-center justify-center mb-5 transition-colors">
-                <svg className="w-7 h-7 text-white group-hover:text-[#42deef] transition-colors" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                </svg>
+              <div className="text-gray-600 text-[10px] uppercase tracking-[0.35em] mb-6">{s.label}</div>
+              <div className="mt-auto">
+                <div className="text-white font-black text-xs uppercase tracking-widest mb-1">{s.platform}</div>
+                <div className="text-gray-700 text-xs hover-underline">{s.handle}</div>
               </div>
-              <div className="text-3xl font-black text-white mb-1">48.5K</div>
-              <div className="text-gray-500 text-xs uppercase tracking-widest mb-3">Followers</div>
-              <div className="text-white font-black text-xs uppercase tracking-widest mb-1">Instagram</div>
-              <div className="text-gray-600 text-xs">@officialteamvamos</div>
             </a>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Community CTA */}
-      <section className="py-24 px-4 bg-[#0A0A0A] relative overflow-hidden reveal" data-reveal>
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#42deef] opacity-5 blur-3xl rounded-full" />
-        </div>
-        <div className="max-w-xl mx-auto text-center relative z-10">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="h-px w-8 bg-[#42deef]" />
-            <span className="text-[#42deef] text-xs font-black tracking-[0.3em] uppercase">Stay Connected</span>
-            <div className="h-px w-8 bg-[#42deef]" />
-          </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white uppercase mb-4">
-            Join The <span className="text-[#42deef]">Community</span>
+      {/* ══════════════════════════════════════════════════
+          COMMUNITY CTA
+      ══════════════════════════════════════════════════ */}
+      <section className="py-28 px-8 bg-[#42deef] reveal" data-reveal data-header-theme="light">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2
+            className="font-black text-black uppercase leading-none tracking-tighter mb-6"
+            style={{ fontSize: 'clamp(3rem, 8vw, 7rem)' }}
+          >
+            Stay<br />Connected
           </h2>
-          <p className="text-gray-400 mb-10">
+          <p className="text-black/60 text-sm mb-10 max-w-sm mx-auto">
             Get early access to exclusive drops, match schedules, and community events.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="email"
-              placeholder="your@email.com"
-              className="flex-1 bg-[#111] border border-[#333] text-white px-4 py-3 text-sm focus:outline-none focus:border-[#42deef] transition-colors placeholder-gray-700"
-            />
-            <button className="bg-[#42deef] text-[#0A0A0A] px-8 py-3 font-black text-xs uppercase tracking-widest hover:bg-[#1cc5d9] transition-colors whitespace-nowrap">
-              Subscribe
-            </button>
-          </div>
+          {subStatus === 'success' ? (
+            <div className="max-w-md mx-auto py-4 px-6 bg-black/30 border border-[#42deef]/30 text-center">
+              <p className="text-[#42deef] font-black text-sm uppercase tracking-widest">You&apos;re in! 🎉</p>
+              <p className="text-black/50 text-xs mt-1">Thanks for subscribing. Watch out for exclusive drops.</p>
+            </div>
+          ) : subStatus === 'duplicate' ? (
+            <div className="max-w-md mx-auto py-4 px-6 bg-black/20 border border-black/20 text-center">
+              <p className="text-black/70 font-black text-sm uppercase tracking-widest">Already subscribed!</p>
+              <p className="text-black/40 text-xs mt-1">You&apos;re already on the list.</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row max-w-md mx-auto">
+              <input
+                type="email"
+                value={subEmail}
+                onChange={e => setSubEmail(e.target.value)}
+                placeholder="your@email.com"
+                required
+                className="flex-1 bg-black text-white border-0 px-5 py-4 text-sm focus:outline-none placeholder-white/30"
+              />
+              <button
+                type="submit"
+                disabled={subStatus === 'loading'}
+                className="bg-white text-black px-8 py-4 font-black text-[11px] uppercase tracking-[0.3em] hover:bg-black hover:text-white transition-colors duration-300 whitespace-nowrap disabled:opacity-60"
+              >
+                {subStatus === 'loading' ? '…' : 'Subscribe'}
+              </button>
+            </form>
+          )}
+          {subStatus === 'error' && (
+            <p className="text-red-500 text-[10px] text-center mt-2 font-black uppercase tracking-wider">Something went wrong. Try again.</p>
+          )}
         </div>
       </section>
 
-      {/* Partner Section */}
-      <section className="py-24 px-4 bg-[#080808] border-t border-[#1A1A1A] reveal" data-reveal>
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-16 items-start">
-            {/* Left — Copy */}
+      {/* ══════════════════════════════════════════════════
+          PARTNER
+      ══════════════════════════════════════════════════ */}
+      <section className="py-24 bg-white reveal" data-reveal data-header-theme="light">
+        <div className="max-w-[1600px] mx-auto px-8 sm:px-14 lg:px-20">
+          <div className="grid md:grid-cols-2 gap-16 lg:gap-24 items-start">
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-px w-8 bg-[#42deef]" />
-                <span className="text-[#42deef] text-xs font-black tracking-[0.3em] uppercase">Partnership</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-black text-white uppercase mb-6 leading-tight">
-                Widen Your <span className="text-[#42deef]">Crowd</span>
+              <span className="text-[#42deef] text-[10px] font-black tracking-[0.5em] uppercase">Partnership</span>
+              <h2
+                className="font-black text-black uppercase mt-3 mb-8 leading-none tracking-tighter"
+                style={{ fontSize: 'clamp(2.5rem, 5.5vw, 5rem)' }}
+              >
+                Widen<br />Your{' '}
+                <span style={{ WebkitTextStroke: '1.5px #42deef', color: 'transparent' }}>Crowd</span>
               </h2>
-              <p className="text-gray-400 leading-relaxed mb-5">
-                Join forces with Team Vamos and expand your reach. Together, we can achieve more and create
-                lasting partnerships that matter.
+              <p className="text-gray-500 leading-relaxed mb-5 max-w-sm">
+                Join forces with Team Vamos and expand your reach. Together, we create
+                lasting partnerships that matter to the community.
               </p>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                From jersey sponsorships to event collaborations, content partnerships, and brand activations —
-                let's build something the Vamos community will love.
-              </p>
-              <div className="mt-8 space-y-3">
+              <div className="mt-10 space-y-4">
                 {['Brand Sponsorship', 'Event Collaboration', 'Content Partnership', 'Product Collaboration'].map((type) => (
-                  <div key={type} className="flex items-center gap-3">
-                    <div className="w-1.5 h-1.5 bg-[#42deef] rounded-full" />
-                    <span className="text-gray-400 text-sm">{type}</span>
+                  <div key={type} className="flex items-center gap-4 group">
+                    <div className="w-6 h-px bg-[#42deef] group-hover:w-10 transition-all duration-300" />
+                    <span className="text-gray-500 text-sm group-hover:text-black transition-colors duration-300">{type}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Right — Form */}
-            <div className="bg-[#111] border border-[#1A1A1A] p-8">
-              {partnerSent ? (
-                <div className="text-center py-8">
-                  <div className="text-[#42deef] text-4xl font-black mb-4">✓</div>
-                  <p className="text-white font-black uppercase tracking-widest text-sm mb-2">Inquiry Received!</p>
-                  <p className="text-gray-500 text-xs">Our partnership team will reach out within 2–3 business days.</p>
+            <div className="border border-black/8 p-8 lg:p-10">
+              {partnerStatus === 'success' ? (
+                <div className="text-center py-12">
+                  <div className="text-5xl font-black text-[#42deef] mb-4">✓</div>
+                  <p className="text-black font-black uppercase tracking-widest text-sm mb-2">Inquiry Received!</p>
+                  <p className="text-gray-400 text-xs">Our team will reach out within 2–3 business days.</p>
+                  <button
+                    onClick={() => setPartnerStatus('idle')}
+                    className="mt-6 text-[#42deef] text-xs uppercase tracking-widest hover:underline"
+                  >
+                    Submit Another
+                  </button>
                 </div>
               ) : (
-                <form onSubmit={handlePartnerSubmit} className="space-y-4">
-                  <h3 className="text-white font-black uppercase tracking-widest text-xs mb-6 pb-4 border-b border-[#1A1A1A]">
+                <form onSubmit={handlePartnerSubmit} className="space-y-5">
+                  <h3 className="text-black font-black uppercase tracking-[0.3em] text-xs mb-8 pb-5 border-b border-black/8">
                     Partner with Us
                   </h3>
+                  {[
+                    { label: 'Name', type: 'text', key: 'name', ph: 'Your full name' },
+                    { label: 'Company', type: 'text', key: 'company', ph: 'Company or brand name' },
+                    { label: 'Email', type: 'email', key: 'email', ph: 'business@email.com' },
+                  ].map((f) => (
+                    <div key={f.key}>
+                      <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">{f.label}</label>
+                      <input
+                        type={f.type}
+                        value={partnerForm[f.key as keyof typeof partnerForm]}
+                        onChange={(e) => setPartnerForm({ ...partnerForm, [f.key]: e.target.value })}
+                        className="w-full px-4 py-3.5 bg-[#f7f7f7] border-0 border-b-2 border-transparent text-black text-sm focus:outline-none focus:border-[#42deef] transition-colors placeholder-gray-300"
+                        placeholder={f.ph}
+                        required
+                      />
+                    </div>
+                  ))}
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Name</label>
-                    <input
-                      type="text"
-                      value={partnerForm.name}
-                      onChange={(e) => setPartnerForm({ ...partnerForm, name: e.target.value })}
-                      className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#333] text-white text-sm focus:outline-none focus:border-[#42deef] transition-colors placeholder-gray-700"
-                      placeholder="Your full name"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Company</label>
-                    <input
-                      type="text"
-                      value={partnerForm.company}
-                      onChange={(e) => setPartnerForm({ ...partnerForm, company: e.target.value })}
-                      className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#333] text-white text-sm focus:outline-none focus:border-[#42deef] transition-colors placeholder-gray-700"
-                      placeholder="Company or brand name"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Email</label>
-                    <input
-                      type="email"
-                      value={partnerForm.email}
-                      onChange={(e) => setPartnerForm({ ...partnerForm, email: e.target.value })}
-                      className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#333] text-white text-sm focus:outline-none focus:border-[#42deef] transition-colors placeholder-gray-700"
-                      placeholder="business@email.com"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Message</label>
+                    <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">Message</label>
                     <textarea
                       value={partnerForm.message}
                       onChange={(e) => setPartnerForm({ ...partnerForm, message: e.target.value })}
                       rows={4}
-                      className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#333] text-white text-sm focus:outline-none focus:border-[#42deef] transition-colors placeholder-gray-700 resize-none"
+                      className="w-full px-4 py-3.5 bg-[#f7f7f7] border-0 border-b-2 border-transparent text-black text-sm focus:outline-none focus:border-[#42deef] transition-colors placeholder-gray-300 resize-none"
                       placeholder="Tell us about your partnership idea..."
                       required
                     />
                   </div>
+                  {partnerStatus === 'error' && (
+                    <p className="text-red-500 text-xs">Something went wrong. Please try again.</p>
+                  )}
                   <button
                     type="submit"
-                    className="w-full bg-[#42deef] text-[#0A0A0A] py-3 font-black text-xs uppercase tracking-widest hover:bg-[#1cc5d9] transition-colors mt-2"
+                    disabled={partnerStatus === 'loading'}
+                    className="btn-wipe btn-wipe-invert w-full border border-black text-black py-4 font-black text-[11px] uppercase tracking-[0.3em] mt-2 disabled:opacity-50"
                   >
-                    Submit Inquiry
+                    {partnerStatus === 'loading' ? 'Sending...' : 'Submit Inquiry'}
                   </button>
                 </form>
               )}
@@ -662,60 +900,84 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-[#0A0A0A] border-t border-[#1A1A1A] py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-5 gap-12 mb-12">
+      {/* ══════════════════════════════════════════════════
+          FOOTER
+      ══════════════════════════════════════════════════ */}
+      <footer className="bg-black border-t border-white/[0.06] py-16 px-4">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-10 lg:px-16">
+          <div className="grid md:grid-cols-5 gap-12 mb-14">
             <div className="md:col-span-2">
               <Image
                 src="/vamos-logo.webp"
                 alt="Vamos"
                 width={120}
                 height={48}
-                className="h-10 w-auto object-contain mb-4"
+                className="h-9 w-auto object-contain mb-5"
               />
-              <p className="text-gray-500 text-sm max-w-xs leading-relaxed">
+              <p className="text-gray-600 text-sm max-w-xs leading-relaxed">
                 Official Team Vamos merchandise store. Representing Malaysian esports on the global stage.
               </p>
               <div className="flex gap-5 mt-6">
-                <a href="https://www.tiktok.com/@officialteamvamos" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-[#42deef] text-xs uppercase tracking-widest transition-colors">TikTok</a>
-                <a href="https://www.instagram.com/officialteamvamos/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-[#42deef] text-xs uppercase tracking-widest transition-colors">Instagram</a>
-                <a href="https://www.youtube.com/@officialteamvamos" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-[#42deef] text-xs uppercase tracking-widest transition-colors">YouTube</a>
+                {[
+                  { href: 'https://www.tiktok.com/@officialteamvamos', label: 'TikTok' },
+                  { href: 'https://www.instagram.com/officialteamvamos/', label: 'Instagram' },
+                  { href: 'https://www.youtube.com/@officialteamvamos', label: 'YouTube' },
+                ].map((s) => (
+                  <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
+                    className="text-gray-700 hover:text-[#42deef] text-[10px] uppercase tracking-widest transition-colors hover-underline">
+                    {s.label}
+                  </a>
+                ))}
               </div>
             </div>
-            <div>
-              <h4 className="font-black text-white uppercase tracking-widest text-xs mb-5">Shop</h4>
-              <ul className="space-y-3">
-                <li><a href="/products" className="text-gray-500 hover:text-white text-sm transition-colors">All Products</a></li>
-                <li><a href="/products" className="text-gray-500 hover:text-white text-sm transition-colors">Apparel</a></li>
-                <li><a href="/products" className="text-gray-500 hover:text-white text-sm transition-colors">Gaming Gear</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-black text-white uppercase tracking-widest text-xs mb-5">Support</h4>
-              <ul className="space-y-3">
-                <li><a href="/contact" className="text-gray-500 hover:text-white text-sm transition-colors">Contact Us</a></li>
-                <li><a href="/refund-policy" className="text-gray-500 hover:text-white text-sm transition-colors">Shipping &amp; Returns</a></li>
-                <li><a href="/refund-policy" className="text-gray-500 hover:text-white text-sm transition-colors">Refund Policy</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-black text-white uppercase tracking-widest text-xs mb-5">Legal</h4>
-              <ul className="space-y-3">
-                <li><a href="/privacy-policy" className="text-gray-500 hover:text-white text-sm transition-colors">Privacy Policy</a></li>
-                <li><a href="/terms-of-service" className="text-gray-500 hover:text-white text-sm transition-colors">Terms of Service</a></li>
-                <li><a href="/contact" className="text-gray-500 hover:text-white text-sm transition-colors">Contact Info</a></li>
-              </ul>
-            </div>
+            {[
+              {
+                title: 'Shop',
+                links: [
+                  { href: '/products', label: 'All Products' },
+                  { href: '/products', label: 'Apparel' },
+                  { href: '/store', label: 'Vault' },
+                ],
+              },
+              {
+                title: 'Support',
+                links: [
+                  { href: '/contact', label: 'Contact Us' },
+                  { href: '/refund-policy', label: 'Shipping & Returns' },
+                  { href: '/refund-policy', label: 'Refund Policy' },
+                ],
+              },
+              {
+                title: 'Legal',
+                links: [
+                  { href: '/privacy-policy', label: 'Privacy Policy' },
+                  { href: '/terms-of-service', label: 'Terms of Service' },
+                  { href: '/contact', label: 'Contact Info' },
+                ],
+              },
+            ].map((col) => (
+              <div key={col.title}>
+                <h4 className="font-black text-white uppercase tracking-[0.3em] text-[10px] mb-5">{col.title}</h4>
+                <ul className="space-y-3">
+                  {col.links.map((l) => (
+                    <li key={l.label}>
+                      <a href={l.href} className="text-gray-600 hover:text-white text-sm transition-colors hover-underline">
+                        {l.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
 
-          <div className="border-t border-[#1A1A1A] pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-gray-600 text-xs">
+          <div className="border-t border-white/[0.06] pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-gray-700 text-xs">
               © 2025 Team Vamos. All rights reserved. MPL MY Official Merchandise.
             </p>
             <div className="flex items-center gap-2">
               <div className="h-px w-4 bg-[#42deef]" />
-              <span className="text-gray-600 text-xs uppercase tracking-[0.3em]">VAMOS</span>
+              <span className="text-gray-700 text-[10px] uppercase tracking-[0.4em]">VAMOS</span>
               <div className="h-px w-4 bg-[#42deef]" />
             </div>
           </div>

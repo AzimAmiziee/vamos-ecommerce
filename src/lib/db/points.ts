@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 
 export interface DBReward {
   id: string;
@@ -30,7 +30,7 @@ export interface RedemptionInput {
 }
 
 export async function getRewards(): Promise<DBReward[]> {
-  const { data, error } = await supabase
+  const { data, error } = await createClient()
     .from('rewards')
     .select('*')
     .eq('active', true)
@@ -44,7 +44,7 @@ export async function getRewards(): Promise<DBReward[]> {
 }
 
 export async function getUserPoints(userId: string): Promise<number> {
-  const { data } = await supabase
+  const { data } = await createClient()
     .from('profiles')
     .select('points')
     .eq('id', userId)
@@ -53,7 +53,7 @@ export async function getUserPoints(userId: string): Promise<number> {
 }
 
 export async function getUserRedemptions(userId: string): Promise<string[]> {
-  const { data } = await supabase
+  const { data } = await createClient()
     .from('redemptions')
     .select('reward_id')
     .eq('user_id', userId)
@@ -63,7 +63,7 @@ export async function getUserRedemptions(userId: string): Promise<string[]> {
 
 export async function createRedemption(input: RedemptionInput): Promise<boolean> {
   // 1. Insert redemption record
-  const { error: redError } = await supabase.from('redemptions').insert({
+  const { error: redError } = await createClient().from('redemptions').insert({
     user_id: input.userId,
     reward_id: input.rewardId,
     code: input.code,
@@ -84,7 +84,7 @@ export async function createRedemption(input: RedemptionInput): Promise<boolean>
   }
 
   // 2. Deduct points ledger
-  await supabase.from('points_ledger').insert({
+  await createClient().from('points_ledger').insert({
     user_id: input.userId,
     amount: -input.pointsSpent,
     type: 'redemption',
@@ -93,11 +93,11 @@ export async function createRedemption(input: RedemptionInput): Promise<boolean>
 
   // 3. Update profile points balance
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase as any).rpc('increment_points', { p_user_id: input.userId, p_amount: -input.pointsSpent });
+  await (createClient() as any).rpc('increment_points', { p_user_id: input.userId, p_amount: -input.pointsSpent });
 
   // 4. Decrement reward stock
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase as any).rpc('decrement_reward_stock', { p_reward_id: input.rewardId });
+  await (createClient() as any).rpc('decrement_reward_stock', { p_reward_id: input.rewardId });
 
   return true;
 }

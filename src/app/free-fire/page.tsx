@@ -1,6 +1,8 @@
 import Header from '@/app/components/Header';
 import Link from 'next/link';
 
+const S = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/storage`;
+
 const players = [
   { name: '2FAST',   image: 'https://www.vamos.com.my/cdn/shop/files/FREE_FIRE_PLAYER-2FAST.jpg?v=1744094878' },
   { name: 'ZUEZZ',   image: 'https://www.vamos.com.my/cdn/shop/files/FREE_FIRE_PLAYER-ZUEZZ.jpg?v=1744094878' },
@@ -162,7 +164,7 @@ export default function FreeFirePage() {
             <div className="relative">
               <div className="aspect-square bg-[#111] border border-[#1A1A1A] flex items-center justify-center overflow-hidden relative">
                 <img
-                  src="/storage/freefire/free-fire.webp"
+                  src={`${S}/freefire/free-fire.webp`}
                   alt="Free Fire"
                   className="w-full h-full object-cover"
                 />

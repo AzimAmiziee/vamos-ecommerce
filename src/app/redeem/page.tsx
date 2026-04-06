@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Header from '@/app/components/Header';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import { createRedemption } from '@/lib/db/points';
 import { useAuth } from '@/app/providers';
 import { getTopSpenders, getActiveSeason } from '@/lib/db/leaderboard';
@@ -83,7 +83,7 @@ export default function RedeemPage() {
   useEffect(() => { setPoints(profile?.points ?? 0); }, [profile]);
 
   useEffect(() => {
-    supabase.from('rewards').select('*').eq('active', true).order('sort_order', { ascending: true })
+    createClient().from('rewards').select('*').eq('active', true).order('sort_order', { ascending: true })
       .then(({ data }) => {
         if (!data) return;
         setRewards(data.map((r) => ({
@@ -98,7 +98,7 @@ export default function RedeemPage() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('redemptions').select('reward_id').eq('user_id', user.id).neq('status', 'cancelled')
+    createClient().from('redemptions').select('reward_id').eq('user_id', user.id).neq('status', 'cancelled')
       .then(({ data }) => setRedeemedIds((data ?? []).map((r) => r.reward_id)));
   }, [user]);
 

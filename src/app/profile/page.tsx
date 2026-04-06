@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/app/components/Header';
 import { useAuth } from '@/app/providers';
-import { supabase } from '@/lib/supabase';
 
 const AVATARS = [
   '🦊','🐺','🦁','🐯','🦅','🐉','⚔️','🎮','🏆','🔥',

@@ -5,11 +5,22 @@ import { useState } from 'react';
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  const handleSubmit = (e: { preventDefault(): void }) => {
+  const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
-    setSubmitted(true);
+    setStatus('loading');
+    const res = await fetch('/api/inquiries', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ type: 'contact', ...form }),
+    });
+    if (res.ok) {
+      setStatus('success');
+      setForm({ name: '', email: '', subject: '', message: '' });
+    } else {
+      setStatus('error');
+    }
   };
 
   return (
@@ -80,13 +91,13 @@ export default function ContactPage() {
               Send a Message
             </h2>
 
-            {submitted ? (
+            {status === 'success' ? (
               <div className="bg-[#111] border border-[#42deef]/30 p-8 text-center">
                 <div className="text-[#42deef] text-3xl font-black mb-3">✓</div>
                 <p className="text-white font-black uppercase tracking-widest text-sm mb-2">Message Sent!</p>
                 <p className="text-gray-500 text-xs">Our team will get back to you shortly.</p>
                 <button
-                  onClick={() => { setSubmitted(false); setForm({ name: '', email: '', subject: '', message: '' }); }}
+                  onClick={() => setStatus('idle')}
                   className="mt-6 text-[#42deef] text-xs uppercase tracking-widest hover:underline"
                 >
                   Send Another
@@ -138,11 +149,15 @@ export default function ContactPage() {
                     required
                   />
                 </div>
+                {status === 'error' && (
+                  <p className="text-red-400 text-xs">Something went wrong. Please try again.</p>
+                )}
                 <button
                   type="submit"
-                  className="w-full bg-[#42deef] text-[#0A0A0A] py-3 font-black text-xs uppercase tracking-widest hover:bg-[#1cc5d9] transition-colors mt-2"
+                  disabled={status === 'loading'}
+                  className="w-full bg-[#42deef] text-[#0A0A0A] py-3 font-black text-xs uppercase tracking-widest hover:bg-[#1cc5d9] transition-colors mt-2 disabled:opacity-50"
                 >
-                  Send Message
+                  {status === 'loading' ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             )}

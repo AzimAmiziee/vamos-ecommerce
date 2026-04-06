@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Header from '@/app/components/Header';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
 import type { DBGame } from '@/lib/db/games';
 
 const CATEGORIES = ['All', 'Mobile Game', 'PC Game', 'Voucher'] as const;
