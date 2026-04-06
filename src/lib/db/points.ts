@@ -58,7 +58,7 @@ export async function getUserRedemptions(userId: string): Promise<string[]> {
     .select('reward_id')
     .eq('user_id', userId)
     .not('status', 'eq', 'cancelled');
-  return (data ?? []).map((r) => r.reward_id);
+  return (data ?? []).map((r: { reward_id: string }) => r.reward_id);
 }
 
 export async function createRedemption(input: RedemptionInput): Promise<boolean> {

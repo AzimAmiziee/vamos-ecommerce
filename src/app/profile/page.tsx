@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/app/components/Header';
 import { useAuth } from '@/app/providers';
+import { createClient } from '@/lib/supabase/client';
 
 const AVATARS = [
   '🦊','🐺','🦁','🐯','🦅','🐉','⚔️','🎮','🏆','🔥',
@@ -43,7 +44,7 @@ export default function ProfilePage() {
     setError('');
     setSaving(true);
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await createClient()
       .from('profiles')
       .update({ full_name: fullName.trim(), phone: phone.trim(), avatar_url: avatar })
       .eq('id', user.id);

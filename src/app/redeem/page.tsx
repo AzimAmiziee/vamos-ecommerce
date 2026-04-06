@@ -84,9 +84,9 @@ export default function RedeemPage() {
 
   useEffect(() => {
     createClient().from('rewards').select('*').eq('active', true).order('sort_order', { ascending: true })
-      .then(({ data }) => {
+      .then(({ data }: { data: Record<string, any>[] | null }) => {
         if (!data) return;
-        setRewards(data.map((r) => ({
+        setRewards(data.map((r: Record<string, any>) => ({
           id: r.id, title: r.title, description: r.description ?? '',
           points: r.points_required, category: r.category as Reward['category'],
           icon: r.icon ?? '🎁', badge: r.badge ?? undefined,
@@ -99,7 +99,7 @@ export default function RedeemPage() {
   useEffect(() => {
     if (!user) return;
     createClient().from('redemptions').select('reward_id').eq('user_id', user.id).neq('status', 'cancelled')
-      .then(({ data }) => setRedeemedIds((data ?? []).map((r) => r.reward_id)));
+      .then(({ data }: { data: { reward_id: string }[] | null }) => setRedeemedIds((data ?? []).map((r) => r.reward_id)));
   }, [user]);
 
   useEffect(() => {

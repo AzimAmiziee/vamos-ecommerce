@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Header from '@/app/components/Header';
 import Link from 'next/link';
 import type { DBGame } from '@/lib/db/games';
+import { createClient } from '@/lib/supabase/client';
 
 const CATEGORIES = ['All', 'Mobile Game', 'PC Game', 'Voucher'] as const;
 type Category = typeof CATEGORIES[number];
@@ -14,12 +15,12 @@ export default function StorePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase
+    createClient()
       .from('games')
       .select('*, game_packages(*)')
       .eq('active', true)
       .order('sort_order', { ascending: true })
-      .then(({ data }) => {
+      .then(({ data }: { data: DBGame[] | null }) => {
         setGames((data ?? []) as DBGame[]);
         setLoading(false);
       });
