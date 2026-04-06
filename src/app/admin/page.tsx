@@ -11,6 +11,11 @@ interface Stats {
   totalUsers: number;
 }
 
+interface Order {
+  status: string;
+  total: number;
+}
+
 interface RecentOrder {
   id: string;
   status: string;
@@ -46,7 +51,7 @@ export default function AdminPage() {
           .limit(8),
       ]);
 
-      const orders = ordersRes.data ?? [];
+      const orders = (ordersRes.data ?? []) as Order[];
       setStats({
         totalOrders:   orders.length,
         pendingOrders: orders.filter(o => o.status === 'pending').length,
